@@ -1,0 +1,20 @@
+/*! user.css 2021.10.22. ArticleJS $
+ +++++++++++++++++++++++++++++++++++++
+ *  用户页样式
+ *
+ *  @author 风林 zhliner@gmail.com
+ *
+ ******************************************************************************
+ */
+
+main {
+    margin: 40px auto;
+}
+#editorBox {
+    width: 1000px;
+    height: 760px;
+    resize: both;
+    overflow: hidden;
+    display: inline-block;
+    padding: 8px;
+}

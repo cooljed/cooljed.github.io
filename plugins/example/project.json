@@ -1,0 +1,5 @@
+{
+    "maps":     "maps.json",
+    "node":     "index.html",
+    "style":    "styles.css"
+}

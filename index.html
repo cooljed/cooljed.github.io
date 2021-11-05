@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="no-cache">
+<title>编辑器用户页（上层）</title>
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="stylesheet" href="styles.css">
+<script src="base/tquery/tquery.min.js"></script>
+
+<script type="module">
+    import coolj, {setupRoot} from "./index.js";
+
+    coolj.create( null, setupRoot )
+        .init( $.get('#editorBox') )
+        .then( ed => window.console.info('上层用户页逻辑') || ed.frame().contentWindow.focus() );
+</script>
+</head>
+<body>
+    <main>
+        <h2>==编辑器用户页==</h2>
+        <form action="">
+            <textarea name="content" style="display: none;"></textarea>
+            <span id="editorBox"></span>
+        </form>
+    </main>
+</body>
+</html>
