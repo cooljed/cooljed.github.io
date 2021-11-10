@@ -25,7 +25,7 @@ const
         // 应用URL根
         // 如果是子路径，必须包含末尾斜线（/）。
         // 注：仅针对下面3项配置。
-        base:   'http://zhliner.github.io/coolj/',
+        base:   'https://zhliner.github.io/coolj/',
 
 
         // 模板根目录
