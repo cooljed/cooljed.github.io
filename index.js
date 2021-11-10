@@ -378,4 +378,4 @@ export default { create }
 // 配置导出：
 // 编辑器安装根，由用户安装后修改设置。
 //
-export const setupRoot = '/';
+export const setupRoot = '/coolj/';
