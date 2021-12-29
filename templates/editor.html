@@ -16,9 +16,9 @@
 <meta http-equiv="no-cache">
 <title>编辑器主页</title>
 <link rel="stylesheet" href="../base/tpb/default.css">
+<link id="s-theme" rel="stylesheet" href="../themes/Example/style.css">
 <link id="s-main" rel="stylesheet" href="../styles/example/main.css">
 <link id="s-codes" rel="stylesheet" href="../styles/example/codes.css">
-<link id="s-theme" rel="stylesheet" href="../themes/Dark-less/style.css">
 <script src="../base/tquery/tquery.min.js"></script>
 <script src="../base/tquery/plugins/history.min.js"></script>
 <script>
@@ -29,27 +29,35 @@
     $.ready( () => $.trigger(window, 'resize') );
 </script>
 <script type="module">
-    import { Sys } from "../config.js";
+    import { Sys, Local } from "../config.js";
     let _conf = frameElement.Config;
 
     // 当前环境配置覆盖。
     Sys.nameEditor = _conf.name;
-    Sys.toRecover  = _conf.recover;
-    Sys.updateTime = _conf.updatetime;
     Sys.readyCall  = _conf.ready;
     Sys.failCall   = _conf.fail;
-    Sys.saveCall   = _conf.save;
-    Sys.maximizeCall = _conf.maximize;
+    Sys.saver      = _conf.saver;
+    Sys.maximizer  = _conf.maximizer;
+    Sys.contenter  = _conf.contenter;
 
     if ( _conf.theme ) {
-        $.get('#s-theme').href = `../themes/${_conf.theme}/style.css`;
+        $.get(Local.styleTheme).href = `../${Local.themes}/${_conf.theme}/${Local.themeStyle}`;
     }
     if ( _conf.style ) {
-        $.get('#s-main').href = `../styles/${_conf.style}/main.css`;
+        $.get(Local.styleMain).href = `../${Local.styles}/${_conf.style}/${Local.mainStyle}`;
     }
     if ( _conf.codes ) {
-        $.get('#s-codes').href = `../styles/${_conf.codes}/codes.css`;
+        $.get(Local.styleCodes).href = `../${Local.styles}/${_conf.codes}/${Local.codeStyle}`;
     }
+
+    // 接口：
+    // 上级导入通知监听。
+    $.on(
+        window,
+        Sys.importCons,
+        null,
+        ev => $.trigger( $.get('main.content'), 'puthtml', ev.detail )
+    );
 </script>
 <!-- 入口文件 -->
 <script type="module" src="../base/main.min.js"></script>
@@ -76,6 +84,7 @@
         panel.slave;
         panel.help;
         panel.plugins;
+        panel.maximize;
         cmdline.active|ev('detail');
         focus.content;
         toggle.path;
@@ -95,6 +104,7 @@
         #x-slave||click;
         #x-help||click;
         #x-plugins||click;
+        #x-maximize||click;
         #g-cmdx|trigger('setv');
         #g-scroll|trigger('focus');
         #g-path|trigger('toggle');
@@ -112,10 +122,11 @@
         <!-- click 构造章节选择器，定位显示到视口（非id定位） -->
         <nav role="toc"
             on="click(a)|avoid evo(2) paths('nav[role=toc]', 'li') str('>section:nth-of-type(', ')') join str('/', '>h2') $('article') pop $(_1) intoView">
-            <h3>大纲视图 <b title="刷新"
-                on="click|$('#content article')"
-                by="Kit.toclist"
-                to="nav/ol|fill">↻</b>
+            <h3>大纲视图
+                <b title="刷新"
+                    on="click|$('#content article')"
+                    by="Kit.toclist"
+                    to="nav/ol|fill">↻</b>
             </h3>
             <!-- click 单击子表标题（非<a>）折叠切换 -->
             <ol role="cascade" on="click(~h4)|evo(2) parent fold(2)"></ol>
@@ -129,17 +140,26 @@
         适用主区激活范围。 -->
     <div id="editor"
         on="main.chapter|$('#g-count') val split('.');
-            main.saving|$('/main#content') clone;
-            main.export"
+            main.saving|$('/main#content');
+            main.export|sels;
+            main.export2;
+            _export|ev('detail') node('misc:export') ('内容源码') pack(3) node('modal:page') pack(2)"
         by="Kit.chapter;
-            Kit.save"
+            Kit.save;
+            Kit.export;
+            Kit.export('目录')"
         to="#g-count|trigger('reset');
-            #status-info|trigger('info')">
+            #status-info|trigger('info');
+            |trigger('_export');
+            |trigger('_export');
+            #g-modal|trigger('open')">
         <!--模态框
-            open    打开模态框，插入目标表单。向表单发送一个state事件，用于可能需要的初始设置。
-                    可接收一个二元数组，前一个值会被用于激发state事件递送的数据。
-            _focus  聚焦首个文本输入控件（延迟激发待内部子模版就绪）。注记：非原生focus避免聚焦锁死鼠标划选。
+            open    打开模态框，插入目标表单。
+                    同时会向表单发送一个state事件，用于可能需要的初始设置。
+                    可接收一个二元数组，[0]位值用于激发state事件时递送的数据。
             cancel  取消/隐藏模态框，聚焦回归主区（零延迟便于微编辑时聚焦覆盖）。
+            _focus  聚焦首个文本输入控件（延迟激发待内部子模版就绪）。
+                    注记：非原生focus避免聚焦锁死鼠标划选。
             _escin  向ESC添加当前条目。 -->
         <div id="g-modal" class="___Panel Modal" tabindex="0" data-pbo="lost"
             on="click(~._close);
@@ -164,15 +184,15 @@
     <hr id="lineRight" data-pbo="lost"
         on="mousedown|avoid"
         to="body|bind('mousemove:2') once('mouseup')" />
-    <aside id="help" class="___Panel _docs" data-pbo="lost"
+    <aside id="help" class="___Panel" data-pbo="lost"
         on="index|ev('detail') debug('hai')">
-        <div class="_walk">
+        <nav class="_icons">
             <b title="上一项">◀</b>
             <b title="目录" class="_top">▤</b>
             <b title="下一项" data-pbo="disabled">▶</b>
             <!-- ⚘ -->
             <b title="关于..." class="_about">⚘</b>
-        </div>
+        </nav>
         <div id="help-xbox" class="_xbox">
             <!-- dl/dt,dd -->
         </div>

@@ -52,8 +52,7 @@
             input.select 快捷键选取。从data-k特性取值触发（仅部分）。
             change 空选单时采用empty模板，str 用前缀构造最终模板名。
             备忘：
-            用scroll聚焦便于快捷键定位。
-            取消此设计：因为内容区切换选取后选单重构会激发此事件，使内容区失焦（不友好）。 -->
+            勿用scroll聚焦。内容区切换选取后选单重构会激发本事件，使内容区失焦（不友好）。 -->
         <select id="input-items" name="items" size="5" class="_list"
             on="change|evo(3) val or('empty') str('input:') tpl(_1);
                 input.select|ev('detail') slr('/','-k', _1) $(_1) dup pass prop('value')"
@@ -399,7 +398,7 @@
             on="click(button)|sel0 $('form/textarea') val trim dup pass"
             by="Kit.checkhtml(_1) dup $if('err', 'ok')"
             to="/pre|trigger(_1)">
-            <button on="click|avoid">结构检查</button>
+            <button type="button">结构检查</button>
             <!--反馈信息：
                 ok  结构正常。设置_ok类名、文本并取消聚焦能力。
                     3秒后隐藏文本，便于再次检查时反馈更清晰（不变的提示缺乏表达力）。
@@ -582,29 +581,36 @@
     <button type="button">取消</button>
 </div>
 
-<!-- 确定 -->
+<!-- 单确定 -->
 <div class="_submit" tpl-name="modal:ok">
     <button type="submit">确定</button>
 </div>
 
+<!-- 单重置 -->
+<div class="_btn2" tpl-name="modal:reset">
+    <button type="reset">重置</button>
+</div>
 
-<!--模态页（插件应用）
-    state   获取数据为一个二元数组：[节点（集）, 标题条文本]
-    _node   填充应用的根节点（集）。 -->
+
+<!--通用模态页（如插件应用）
+    state   获取数据为一个三元数组：[应用数据, 节点（集）, 标题条文本]
+            其中应用数据会作为vinit通知的附带数据发送。
+    _node   填充应用的根节点（集）。同时会向新插入的节点集发送一个vinit通知。
+    submit  屏蔽提交即可。 -->
 <form class="_page" tpl-name="modal:page"
     on="state|ev('detail') spread;
-        _node|ev('detail');
+        _node|ev('detail') spread;
         submit|avoid"
-    to="/h4|@title|pop goto('_node');
-        /main|fill">
+    to="/h4|text|pack(2) pop goto('_node');
+        /main|fill|pop fire('/main>*', 'vinit')">
     <header>
         <h4>[标题]</h4>
         <b class="_close" title="关闭">✕</b>
     </header>
-    <main>
+    <main on="vinit|stop">
         <!-- [node] -->
     </main>
-    <hr tpl-node="modal:okreset" />
+    <hr tpl-node="modal:reset" />
 </form>
 
 
@@ -669,7 +675,7 @@
     uninstall   插件卸载。移除传递来的插件按钮。
     init        初始插件清单插入。-->
 <form class="_page _plugins" onsubmit="return false" tpl-name="modal:plugins"
-    on="install init|ev('detail') dup pass;
+    on="init install|ev('detail') dup pass;
         uninstall|ev('detail') dup pass remove"
     to="/div._list|append">
     <header>
