@@ -10,7 +10,7 @@
 //  格式：{
 //      key:     映射键（支持数组）,
 //      command: 指令标识,
-//      exclude: 排除选择器（匹配则不执行）,
+//      exclude: 排除选择器（事件起点元素匹配则不执行）,
 //  }
 //
 //  指令标识：
@@ -80,7 +80,7 @@ Global: [
         "command":  "panel.plugins"
     },
 
-    // 编辑器最大化
+    // 编辑器最大化切换
     {
         "key":      ":f10",
         "command":  "panel.maximize"
@@ -156,12 +156,17 @@ Global: [
         "command":  "main.saving"
     },
 
-    // 内容导出。
-    // 打开一个导出对话框，导出源码。
+    // 源码导出。
+    // 如果没有选取元素，则针对全部内容。
     {
-        "key":      "shift:p",
+        "key":      "alt:p",
         "command":  "main.export",
-        "exclude":  "textarea,input,[contenteditable]"
+    },
+    // 同上导出但包含目录。
+    // 仅适用导出全部内容，会忽略已选取元素。
+    {
+        "key":      "alt+shift:p",
+        "command":  "main.export2",
     },
 
 ],
@@ -294,21 +299,21 @@ Content: [
     // 同级向前（↑）
     // 接受前置数字指定扩展距离（默认值1）。
     {
-        "key":      "ctrl+shift:k",
+        "key":      "shift:k",
         "command":  "onlyPrevious"
     },
 
     // 同级向后（↓）
     // 接受前置数字指定扩展距离（默认值1）。
     {
-        "key":      "ctrl+shift:j",
+        "key":      "shift:j",
         "command":  "onlyNext"
     },
 
     // 父级选取（←）
     // 支持前置数字指定上升层级（准确值）。
     {
-        "key":      "ctrl+shift:h",
+        "key":      "shift:h",
         "command":  "onlyParent"
     },
 
@@ -316,13 +321,13 @@ Content: [
     // 支持前置数字指定子元素下标，
     // 下标支持负数从末尾算起（-1表示末尾一个）。
     {
-        "key":      "ctrl+shift:l",
+        "key":      "shift:l",
         "command":  "onlyChild"
     },
 
     // 顶元素选取。
     {
-        "key":      "ctrl+shift:t",
+        "key":      "shift:t",
         "command":  "onlyItemTop"
     },
 
@@ -335,21 +340,21 @@ Content: [
     // 同级向前（↑）扩选
     // 接受前置数字指定扩展距离（默认值1）。
     {
-        "key":      "shift:k",
+        "key":      "ctrl+shift:k",
         "command":  "previous"
     },
 
     // 同级向后（↓）扩选
     // 接受前置数字指定扩展距离（默认值1）。
     {
-        "key":      "shift:j",
+        "key":      "ctrl+shift:j",
         "command":  "next"
     },
 
     // 父级换选（←）
     // 支持前置数字指定上升层级（准确值）。
     {
-        "key":      "shift:h",
+        "key":      "ctrl+shift:h",
         "command":  "parent"
     },
 
@@ -357,7 +362,7 @@ Content: [
     // 支持前置数字指定子元素下标，
     // 下标支持负数从末尾算起（-1表示末尾一个）。
     {
-        "key":      "shift:l",
+        "key":      "ctrl+shift:l",
         "command":  "child"
     },
 
@@ -365,7 +370,7 @@ Content: [
     // - 内联元素的顶元素为内容行元素（或<td>,<th>）。
     // - 结构元素的顶元素为所属单元的根元素。
     {
-        "key":      "shift:t",
+        "key":      "ctrl+shift:t",
         "command":  "itemTop"
     },
 
@@ -491,7 +496,7 @@ Content: [
 
     // 原地克隆（成组）。
     // 选取集内相邻元素分组克隆，插入原组之前（before）。
-    // 注记：与焦点元素无关。
+    // 注：与焦点元素无关。
     {
         "key":      ":c",
         "command":  "elementCloneTeam"
@@ -499,70 +504,70 @@ Content: [
 
     // 原地克隆（各别）。
     // 选取集成员克隆插入原元素之前（before），各自独立。
-    // 注记：与焦点元素无关。
+    // 注：与焦点元素无关。
     {
         "key":      "shift:c",
         "command":  "elementCloneSelf"
     },
 
 
-    // 克隆填充。
+    // 移动填充。
     // 将选取元素或其内容填充到焦点元素内。
     {
         "key":      ":f",
-        "command":  "elementCloneFill"
-    },
-
-    // 移动填充。
-    {
-        "key":      "shift:f",
         "command":  "elementFill"
     },
 
-    // 克隆内插入。
+    // 克隆填充。
+    {
+        "key":      "shift:f",
+        "command":  "elementCloneFill"
+    },
+
+
+    // 移动内插入。
     // 即普通子单元添加，将选取元素或其内容添加到焦点元素内。
     {
         "key":      ":d",
-        "command":  "elementCloneAppend"
-    },
-
-    // 移动内插入。
-    {
-        "key":      "shift:d",
         "command":  "elementAppend"
     },
 
-
-    // 克隆式前插入。
-    // 将选取元素插入到焦点元素之前。
-    // 如果位置非法，会提取内容构建默认单元插入。
-    // 注记：焦点元素可以作为数据源。
+    // 克隆内插入。
     {
-        "key":      ":i",
-        "command":  "elementCloneBefore"
+        "key":      "shift:d",
+        "command":  "elementCloneAppend"
     },
 
+
     // 移动式前插入。
-    // 说明参考上面，焦点元素不可选取。
+    // 将选取元素插入到焦点元素之前，如果位置非法，会提取内容构建默认单元插入。
+    // 焦点元素不可选取。
     {
-        "key":      "shift:i",
+        "key":      ":i",
         "command":  "elementBefore"
     },
 
-    // 克隆式后插入。
-    // 将选取元素插入到焦点元素之后。
-    // 如果位置非法，自动提取内容构建默认单元插入。
-    // 注记：焦点元素可以作为数据源。
+    // 克隆式前插入。
+    // 同上规则。但焦点元素可以作为数据源。
     {
-        "key":      ":b",
-        "command":  "elementCloneAfter"
+        "key":      "shift:i",
+        "command":  "elementCloneBefore"
     },
 
+
     // 移动式后插入。
-    // 说明参考上面，焦点元素不可选取。
+    // 将选取元素插入到焦点元素之后，如果位置非法，自动提取内容构建默认单元插入。
+    // 焦点元素不可选取。
+    {
+        "key":      ":b",
+        "command":  "elementAfter"
+    },
+
+    // 克隆式后插入。
+    // 同上规则，但焦点元素可以作为数据源。
     {
         "key":      "shift:b",
-        "command":  "elementAfter"
+        "command":  "elementCloneAfter"
     },
 
 

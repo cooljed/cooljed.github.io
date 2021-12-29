@@ -1,5 +1,5 @@
 //! $ID: javascript.js 2021.01.19 Cooljed.Highlight $
-// ++++++++++++++++++++++++++++++++++++++++++++++++
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  Project: Coolj-ED v0.2.0
 //  E-Mail:  zhliner@gmail.com
 //  Copyright (c) 2021 铁皮工作室  GPL/GNU v3 License
@@ -121,7 +121,7 @@ const __reSubst = /(\$\{)([^]+?)(\})/g;
 /**
  * 模板字符串内嵌JS代码分离。
  * @param  {String} ts 模板字符串
- * @return {String|[String|Object|Hicolor]}
+ * @return {String|[String|Object]}
  */
 function substMatches( ts ) {
     let _buf = [],
@@ -137,7 +137,8 @@ function substMatches( ts ) {
         }
         _buf.push(
             { type: 'operator', text: _arr[1] },
-            new Hicolor( 'js', _arr[2] ),
+            // 直接取结果，避免被单独成块。
+            ...( new Hicolor( _arr[2], 'js' ).effect() ),
             { type: 'operator', text: _arr[3] }
         );
         _i = __reSubst.lastIndex;

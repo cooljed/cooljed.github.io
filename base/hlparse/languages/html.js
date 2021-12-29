@@ -131,7 +131,7 @@ class HTML extends Hicode {
 
 //
 // 标签内属性解析器。
-// 分解出属性和字符串属性值、以及样式属性内的CSS语法。
+// 分解出属性名和属性值、以及样式属性内的CSS语法。
 //
 class Attr extends Hicode {
 
@@ -184,7 +184,6 @@ class Attr extends Hicode {
 function toTagEnd( txt ) {
     let _i = __Split.index( txt, '>' );
     // 按位置截取“>”。
-    // 兼容未关闭标签，这在编辑代码表单行时有用。
     return [ txt.substring(0, _i), [txt.substring(_i, _i+1)] ];
 }
 
@@ -210,7 +209,7 @@ function tagHandle( beg, txt, end ) {
 
 /**
  * 结束标签查找匹配。
- * 注意查找的是结束标签（</style>）而非标签结束。
+ * 注意查找的是结束标签（</style>）而非起始标签结束。
  * @param  {String} txt 起始标签后文本
  * @param  {[String]} beg 起始匹配集
  * @return {[String, [String]]} [属性文本段, 结束匹配集]
@@ -222,7 +221,6 @@ function toEndTag( txt, beg ) {
     if ( !_val ) {
         return [ txt, [''] ];
     }
-    // end: [1-3]
     return [ txt.substring(0, _val.index), _val.slice() ];
 }
 
@@ -265,7 +263,7 @@ function langHandle( beg, txt, end, lang ) {
 function styleCode( txt, beg ) {
     let ch = beg[2],
         _i = txt.indexOf( ch );
-    // ch: "|'
+    // ch: ["']
     return [ txt.substring(0, _i), [ch] ];
 }
 

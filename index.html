@@ -3,25 +3,80 @@
 <head>
 <meta charset="utf-8" />
 <meta http-equiv="no-cache">
-<title>编辑器用户页（上层）</title>
+<title>Coolj-ED编辑器在线版</title>
 <link rel="shortcut icon" href="favicon.ico">
 <link rel="stylesheet" href="styles.css">
 <script src="base/tquery/tquery.min.js"></script>
-
 <script type="module">
-    import coolj, {setupRoot} from "./index.js";
+    import coolj from "./editor.js";
+    import { saveEditor, tickdoing } from "./index.js";
 
-    coolj.create( null, setupRoot )
-        .init( $.get('#editorBox') )
-        .then( ed => window.console.info('上层用户页逻辑') || ed.frame().contentWindow.focus() );
+    let _ebox = $.get( '#editorBox' ),
+        _fun2 = [ $.removeClass, $.addClass ],
+        _opts = {
+            onsaved: html => window.console.info(`${html.length} bytes content was saved.`),
+            onmaximize: num => _fun2[ num ]( _ebox, '_full' ),
+        },
+        _nav = $.get( '#navbar' );
+
+    coolj.create( _opts )
+        .load( _ebox )
+        // 恢复：样式 && 内容
+        .then( ed => saveEditor(ed) && $.trigger(_nav, 'recover') && $.trigger(ed.frame(), 'recover') && ed )
+        .then( ed => ed.frame().contentWindow.focus() )
+        // 1小时内点亮Logo
+        .then( () => tickdoing(36000) );
 </script>
 </head>
 <body>
     <main>
-        <h2>==编辑器用户页==</h2>
-        <form action="">
+        <h1>◡酷几◡编辑器在线版</h1>
+        <nav id="navbar"
+            on="click(>b)|evo(1) attr('-file');
+                recover|styles('theme', 'style')"
+            by="GET('text', _1) fragment pop $('/main.content') children not('nav')"
+            to="1/iframe|trigger('cimport');
+                (/select)|triggers('recover')">
+            <b title="单击导入" data-file="docs/intro.html">简介</b>
+            <b title="单击导入" data-file="docs/manual.html">操作手册</b>
+            <b title="单击导入" data-file="docs/article.html">文章结构规范</b>
+            <span>
+                <label>主题</label>
+                <select name="themes"
+                    on="change|evo(3) val dup pass;
+                        recover|ev('detail')"
+                    by="Kit.theme"
+                    to="#editorBox|trigger('active');
+                        |val|goto('change')">
+                    <option value="Example"> ------ </option>
+                    <option value="The-blue">蓝调的传说</option>
+                    <option value="Classic-gray">经典50度灰</option>
+                    <option value="Dark-less">光明之夜</option>
+                    <option value="Dark-less/style-ligh.css">光明之夜（L）</option>
+                </select>
+                <a title="主题制作包" href="docs/theme2pack.zip">?</a>
+            </span>
+            <span>
+                <label>内容样式</label>
+                <select name="styles"
+                    on="change|evo(3) val dup(2) pass;
+                        recover|ev('detail')"
+                    by="Kit.main Kit.codes"
+                    to="#editorBox|trigger('active');
+                        |val|goto('change')">
+                    <option value="example"> ------ </option>
+                    <option value="hometown">乡愁</option>
+                    <option value="wildwide">旷野无垠</option>
+                </select>
+                <a title="内容样式制作包" href="docs/style2pack.zip">?</a>
+            </span>
+        </nav>
+        <form onsubmit="return false" action="">
             <textarea name="content" style="display: none;"></textarea>
-            <span id="editorBox"></span>
+            <!-- active 激活：向内聚焦便于快捷键操作。 -->
+            <span id="editorBox"
+                on="active|$('/iframe') its('contentWindow') pop"
+                to="-|apply('focus')"><!-- 编辑器容器 --></span>
         </form>
     </main>
 </body>

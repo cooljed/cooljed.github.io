@@ -1,14 +1,14 @@
-//! $ID: base.js 2021.01.19 Cooljed.Highlight $
-// ++++++++++++++++++++++++++++++++++++++++++++++++
+//! $ID: base.js 2021.01.19 Cooljed.HLParse $
+// ++++++++++++++++++++++++++++++++++++++++++++++
 //  Project: Coolj-ED v0.2.0
 //  E-Mail:  zhliner@gmail.com
 //  Copyright (c) 2021 铁皮工作室  GPL/GNU v3 License
 //
 //////////////////////////////////////////////////////////////////////////////
 //
-//  代码高亮通用框架。
+//  代码高亮解析通用框架。
 //
-//  各语言继承 Hicode 基类，定义匹配器序列（Object5）或实现定制处理（Object5.handle）。
+//  各语言继承 Hicode 基类，定义匹配器序列（Object4）或实现定制处理（Object4.handle）。
 //  如果需要复用其它语言的实现，创建 Hicolor 实例即可，
 //  比如 HTML 中对 Javascript 或 CSS 的嵌入处理。
 //
@@ -18,7 +18,7 @@
 //
 //  配置对象
 //  --------
-//  Object5 {
+//  Object4 {
 //      type:   {String}    类型名，约定俗成的规范名，可选
 //      begin:  {RegExp}    起始匹配式
 //      end:    {Function}  匹配结束检测器，可选
@@ -68,6 +68,9 @@
 //  }
 //  成员.text:
 //  当匹配目标拥有嵌入的语法子块时，text即为嵌入子块的解析结果集（[Object2]）。
+//  只要用户定义了匹配，无论是否存在type，返回的text都视为HTML源码。
+//  注：
+//  没有匹配的视为纯文本，基类实现会自动执行HTML转义。
 //
 //
 //  进阶处理器用例：
@@ -79,6 +82,13 @@
 //  此时处理器应当是返回一个 Object2 的集合。
 //
 //
+//  注记：
+//  这是一个文本匹配解析框架，因此不只适用于代码的语法高亮，
+//  它也可以用于简单的格式转换，比如将 MarkDown 语法文本解析转换为 HTML 源码。
+//
+//  因为解析返回的是文本和标记的对应集，如何解释标记是用户的自由。
+//
+//
 ///////////////////////////////////////////////////////////////////////////////
 //
 
@@ -87,18 +97,18 @@ import $ from "../tpb/config.js";
 
 const
     // 忽略匹配式
-    // 用户匹配式之外的普通文本简单跳过，避免局部匹配。
+    // 用户匹配式之外的普通文本简单跳过，避免后段局部匹配。
     __reIgnore = /^(\w+|\s\s+)/,
 
     // 字符串转义序列（基础）
     __escStr = /\\(?:0|a|b|f|n|r|t|v|'|"|\\|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/g,
 
-    // HTML转义字符。
+    // HTML基本转义字符。
     __escapeMap = {
         '&':    '&amp;',
         '<':    '&lt;',
         '>':    '&gt;',
-        '"':    '&quot;',
+        // '"':    '&quot;',  // HTML属性值本身无法直接书写"，故忽略
     };
 
 
@@ -112,8 +122,8 @@ const
 //
 class Hicode {
     /**
-     * Object5说明见页顶。
-     * @param {[Object5]} matches 匹配器集
+     * Object4说明见页顶。
+     * @param {[Object4]} matches 匹配器集
      * @param {RegExp|[RegExp]} skip 简单跳过匹配式（集）
      */
     constructor( matches, skip = __reIgnore ) {
@@ -176,25 +186,6 @@ class Hicode {
     }
 
 
-    /**
-     * 创建注释。
-     * 默认实现为C语言风格的行注释和块注释。
-     * 具体的语言可覆盖本实现。
-     * 可用于代码编辑中即时注释目标内容。
-     * 返回值：
-     * 块注释返回单个字符串，行注释返回一个行集合。
-     * @param  {String} text 待注释文本
-     * @param  {Boolean} block 为块注释，可选
-     * @return {String|[String]}
-     */
-    comment( text, block ) {
-        if ( block ) {
-            return `/* ${text} */`;
-        }
-        return text.split( '\n' ).map( s => `// ${s}` );
-    }
-
-
     //-- 私有辅助 ----------------------------------------------------------------
 
 
@@ -212,15 +203,15 @@ class Hicode {
     _parseOne( ss, res ) {
         for ( let {type, begin, end, handle} of res ) {
             let _beg = begin.exec( ss ),
-                _sure;
+                _val;
 
             // 仅从开头匹配，容错不规范正则式。
             if ( _beg && _beg.index === 0 ) {
-                _sure = end ?
+                _val = end ?
                     this._range( _beg.slice(), ss.substring(_beg[0].length), end, type, handle ) :
                     this._alone( _beg, type, handle );
             }
-            if ( _sure ) return _sure;
+            if ( _val ) return _val;
         }
         return null;
     }
@@ -261,17 +252,15 @@ class Hicode {
         let _txt = handle && handle( ...beg );
 
         return _txt !== false &&
-        [
-            this._custom( _txt, type, beg[0] ),
-            beg[0].length
-        ];
+            [ this._custom(_txt, type, beg[0]), beg[0].length ];
     }
 
 
     /**
      * 添加纯文本对象。
      * 如果添加了对象，原字符缓存会被清空。
-     * @param  {[String]} chs 字符缓存引用
+     * 未匹配的普通纯文本自动执行HTML基本转义。
+     * @param  {[String]} chs 未匹配字符缓存引用
      * @param  {[Object2]} buf 结果缓存引用
      * @return {void}
      */
@@ -310,7 +299,7 @@ class Hicode {
     /**
      * 跳过匹配式对象构建。
      * @param  {RegExp|[RegExp]} res 匹配式（集）
-     * @return {Object5|[Object5]}
+     * @return {Object4|[Object4]}
      */
     _skipObj( res ) {
         if ( $.isArray(res) ) {
@@ -341,7 +330,7 @@ class Hicode {
 
 
     /**
-     * 数值返回集处理。
+     * 数组返回集处理。
      * 如果成员为字符串，表示其为匹配目标类型的文本。
      * 否则应当是一个 Object2 对象（包含 type 定义）。
      * 会滤除值为 null|undefined 的成员。
@@ -395,16 +384,6 @@ const RE = {
 
 
 /**
- * HTML转义处理。
- * @param  {String} txt 目标字符串
- * @return {String}
- */
-function htmlEscape( txt ) {
-    return txt.replace( /[&<>]/gm, ch => __escapeMap[ch] );
-}
-
-
-/**
  * 词序列转为正则表达式。
  * 所有的空白都会被清除，词区分大小写。
  * 返回值：
@@ -422,7 +401,7 @@ function reWords( str, fix = '\\b' ) {
 
 /**
  * 按模式匹配切分封装。
- * 将目标文本内的模式文本切分提取出来，标记为目标类型Object3。
+ * 将目标文本内的模式文本切分提取出来，标记为目标类型Object2。
  * 返回的文本已经进行了HTML转义。
  * 注记：
  * 用于外部用户简单的分解目标模式文本。
@@ -450,6 +429,16 @@ function regexpEscape( txt, re, type ) {
     }
 
     return _buf.length ? _buf : htmlEscape( txt );
+}
+
+
+/**
+ * HTML转义处理。
+ * @param  {String} txt 目标字符串
+ * @return {String}
+ */
+function htmlEscape( txt ) {
+    return txt.replace( /[&<>]/g, ch => __escapeMap[ch] );
 }
 
 

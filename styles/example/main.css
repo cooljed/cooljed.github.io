@@ -1,10 +1,16 @@
-/*! example.css 2019.11.16 Cooljed.Style $
- +++++++++++++++++++++++++++++++++++++++++++++
+/*! example/main.css 2021.12.23 Cooljed.Style $
+ ++++++++++++++++++++++++++++++++++++++++++++++++++
  *
- *  基本样式的格式示例，
- *  其它样式可据此结构修改创建。
+ *  基本样式的格式范例。
+ *  其它样式可据此结构修改或创建。
  *
- *  @name   经典中灰
+ *  说明：
+ *  文章内容通常在一个<main>元素内，但这里并不作强制限定，
+ *  取而代之的，是内容容器需要设置为 content 类名。
+ *
+ *  因此这里目标定位中的前置 .content 不应当省略。
+ *
+ *  @name   example
  *  @author 风林 zhliner@gmail.com
  *
  *****************************************************************************/
@@ -31,6 +37,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 .content {
     padding: 0 20px;
     font-size: 11pt;
+    background-color: white;
 }
 
 .content table {
@@ -63,7 +70,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     color: #555;
     text-shadow: 0 1px 1px #eee;
     text-align: center;
-    font-size: 2.2em;
+    font-size: 2.3em;
 }
 /* 副标题 */
 .content hgroup > h3 {
@@ -73,6 +80,10 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     padding: 0 20px;
     color: #888;
     text-align: right;
+}
+/* 单独主标题 */
+.content > h1 {
+    margin: 1em auto;
 }
 
 .content section > h2 {
@@ -121,14 +132,16 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     border-radius: 10px;
     margin: 2em 0;
     padding: 10px 30px;
-    background-color: #f7f7f7;
+    background-color: #fbfeff;
     color: #58859c;
     text-shadow: 0.3px 0.3px 5px #cfe5ed;
+    box-shadow: 0px 1px 3px #e3a24f;
 }
 .content header[role=abstract] > h3 {
     font-size: 1.17em;
     margin: 10px;
     text-align: center;
+    color: #d95a00;
 }
 .content header[role=abstract] > blockquote {
     margin: 0 1.4em;
@@ -230,7 +243,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     cursor: default;
 }
 
-/* 目录级联编号 */
+/* 目录级联表 */
 .content nav[role=toc] > ol[role=cascade] {
     height: calc(100% - 70px);
     overflow-y: auto;
@@ -300,12 +313,12 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
  * 用逐层递进定位可能的正文区。
  *----------------------------------------------------------------------------
  */
-
 .content article {
+    /* margin 隔离体现 */
+    border: 1px transparent solid;
 }
 .content article > header {
     margin: 2em 0;
-    border: 1px transparent solid;
 }
 
 
@@ -314,6 +327,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
  * ----------------------------------------------
  */
 .content section[role=s1] {
+    margin-top: 3.6em;
 }
 .content section[role=s1] > h2 {
     font-size: 1.5em;
@@ -438,7 +452,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 }
 
 .content figure i[data-pba|=fix] {
-    max-width: 180px;
+    max-width: 240px;
     padding: 10px;
     border-radius: 5px;
     z-index: 1;

@@ -1,4 +1,4 @@
-//! $ID: index.js 2019.11.16 Cooljed.User $
+//! $ID: index.js 2021.12.25 Cooljed.User $
 // ++++++++++++++++++++++++++++++++++++++++++++
 //  Project: Coolj-ED v0.2.0
 //  E-Mail:  zhliner@gmail.com
@@ -6,376 +6,207 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 //
-//  用法：
-//      // 创建一个编辑器实例。
-//      import coolj from './index.js';
-//      let editor = coolj.create( option, root );
-//
-//      // 编辑器初始化。
-//      // 传入编辑器的容器元素，之后即为用户页逻辑。
-//      // 注意：
-//      // 编辑器的默认高/宽样式为 100%，可能需要一个空容器。
-//      // 最后把焦点交给编辑器窗口可便于快捷键操作。
-//      ecitor.init( box )
-//          .then( ed => ... ed.frame().contentWindow.focus() );
-//
-//  option {
-//      name: String            编辑器实例命名（关联本地存储）
-//      theme: String           默认主题名称，可选
-//      style: String           默认内容样式名，可选
-//      codes: String           默认的代码样式名，可选
-//      width: Number|String    宽度（数值时表示像素），可选，默认100%
-//      height: Number|String   高度（数值时表示像素），可选，默认100%
-//      updatetime: Number      上次更新时间，仅修改时存在。可选
-//      recover: Boolean        需要本地内容恢复（localStorage），可选
-//
-//      onsaved: Function       存储回调（用户按[s]键），接口：function( html ): void
-//      onmaximize: Function    最大化请求，接口：function(): void
-//  }
-//
-//  Editor接口：
-//      .init(): Promise<void>  编辑器初始化
-//      .frame(): Element       获取编辑器根元素（<iframe>）
-//      .reload(): Promise      重新载入编辑器
-//
-//      下面接口由编辑器实现提供
-//      .heading( html:String ): String     获取/设置主标题
-//      .subtitle( html:String ): String    获取/设置副标题
-//      .abstract( html:String ): String    获取/设置文章提要
-//      .content( html:String ): String     获取/设置正文（源码）
-//      .seealso( html:String ): String     获取/设置另参见
-//      .reference( html:String ): Strin    获取/设置文献参考
-//      .theme( name:String, isurl:Boolean ): String    获取/设置主题
-//      .style( name:String, isurl:Boolean ): String    获取/设置内容样式
-//
-//
-//  [兼容性]
-//
-//  - Firefox
-//  不支持<iframe>元素的resize，因此无法直接拖动框架来改变编辑器大小。
-//  解决：将<iframe>嵌入一个可resize的<div>或<span>元素。
-//
-//  - Chrome
-//  元素<iframe>可以直接resize，但旧版本会遮盖住上级包装元素的resize拖拽角。
-//  解决：如果要同时兼顾Firefox，可将上级容器padding一个距离，便于操作。
+//  上层用户页的基础工具定义。
 //
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
 
+import { ROOT, Local } from "./config.js";
+import { Tpb, BaseOn, BaseBy, customGetter, processExtend } from "./base/tpb/tpb.esm.js";
 
-//
-// 编辑器框架样式默认值。
-// resize：
-// - chrome 正常。
-// - firefox 需通过容器resize实现。
-// - Edge/IE 无效。
-//
+
 const
-    __frameStyles = {
-        width:      '100%',
-        height:     '100%',
-        overflow:   'hidden',
-        // 预防性设置
-        border:     'none',
-        boxSizing:  'border-box',
+    On = Object.create( BaseOn ),
+    By = Object.create( BaseBy ),
+
+    // 本地存储键
+    //-------------------------------------------
+
+    storeStyle = {
+        theme:  'Theme',    // 编辑器主题
+        style:  'Style',    // 内容样式
+        codes:  'Codes',    // 内容代码样式
     },
 
-    // 编辑器默认名。
-    __saveName  = 'coolj',
-
-    // 编辑器根文件（模板）
-    __tplRoot   = 'templates/editor.html';
+    // 保存编辑器实例。
+    saveEditor = ed => ( __editor = ed );
 
 
 
 //
-// 编辑器实现。
-// 构建多个编辑器时可创建多个实例。
+// 编辑器实例存储。
+// 用于调用Api接口设置样式等操作。
 //
-class Editor {
+let __editor = null;
+
+
+const Kit = {
     /**
-     * 创建编辑器。
-     * @param {Object} option 配置集
-     * @param {String} root 编辑器根目录路径
+     * 获取本地存储的样式风格名。
+     * @param  {...String} names 样式类型名（theme|style|codes）
+     * @return {[String]}
      */
-    constructor( option, root ) {
-        let _ifrm = editorFrame( option.width, option.height );
-
-        _ifrm.Config = {
-            name:       option.name || __saveName,
-            theme:      option.theme,
-            style:      option.style,
-            codes:      option.codes,
-            updatetime: option.updatetime,
-            recover:    option.recover,
-            save:       option.onsaved || empty,
-            maximize:   option.onmaximize || empty,
-        };
-        this._path = root;
-        this._ifrm = _ifrm;
-
-        // 编辑器根模板文件
-        this._file = null;
-    }
+    styles( evo, ...types ) {
+        let _fix = __editor.name();
+        return types.map( k => localStyle(_fix, k) );
+    },
 
 
     /**
-     * 编辑器初始化。
-     * 可传入自定义的根模板文件，相对于编辑器根。
-     * @param  {Element} box 容器元素
-     * @param  {String} file 编辑器根模板文件，可选
-     * @return {Promise<Editor>}
-     */
-    init( box, file = __tplRoot ) {
-        this._ifrm.setAttribute(
-            'src',
-            `${this._path}${file}`
-        );
-        this._file = file;
-
-        return new Promise( this._init.bind(this, box) );
-    }
-
-
-    /**
-     * 获取编辑器框架容器。
-     * @return {Element}
-     */
-    frame() {
-        return this._ifrm;
-    }
-
-
-    /**
-     * 编辑器重载。
-     * 会自动恢复本地存储，因此执行前用户可能需要先保存（[s]）。
-     * 与.init()的逻辑相似。
-     * 注记：
-     * 并不会自动保存编辑器当前最新内容，这给用户一个移除自上次保存以来新内容的可能。
-     * file参数提供重载入另一套模板的可能性。
-     * @param  {String} file 编辑器根模板文件，可选
-     * @return {Promise<void>}
-     */
-    reload( file ) {
-        this._ifrm.Config.recover = true;
-        return this.init( file || this._file );
-    }
-
-
-    // 内容存取接口
-    ////////////////////////////////////////////////////////////////
-
-
-    /**
-     * 获取/设置主标题。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    heading( html ) {
-        return this._value( 'heading', html );
-    }
-
-
-    /**
-     * 获取/设置副标题。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    subtitle( html ) {
-        return this._value( 'subtitle', html );
-    }
-
-
-    /**
-     * 获取/设置文章提要。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    abstract( html ) {
-        return this._value( 'abstract', html );
-    }
-
-
-    /**
-     * 获取/设置正文内容。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    content( html ) {
-        return this._value( 'content', html );
-    }
-
-
-    /**
-     * 获取/设置另参见。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    seealso( html ) {
-        return this._value( 'seealso', html );
-    }
-
-
-    /**
-     * 获取/设置文献参考。
-     * @param  {String} html 内容源码
-     * @return {String|this}
-     */
-    reference( html ) {
-        return this._value( 'reference', html );
-    }
-
-
-    /**
-     * 获取/设置编辑器主题。
-     * 传递custom为真，表示用定制样式文件（全URL）。
-     * @param  {String} name 主题名称
-     * @param  {Boolean} isurl 自定义URL
-     * @return {String|this}
-     */
-    theme( name, isurl ) {
-        if ( name === undefined ) {
-            return this._value( 'theme' );
-        }
-        return this._value( 'theme', name, isurl );
-    }
-
-
-    /**
-     * 获取/设置内容样式。
-     * @param  {String} name 主样式文件
-     * @param  {Boolean} isurl 自定义URL
-     * @return {String|this}
-     */
-    style( name, isurl ) {
-        if ( name === undefined ) {
-            return this._value( 'style' );
-        }
-        return this._value( 'style', name, isurl );
-    }
-
-
-    /**
-     * 获取/设置内容代码样式。
-     * @param  {String} name 主样式文件
-     * @param  {Boolean} isurl 自定义URL
-     * @return {String|this}
-     */
-    codes( name, isurl ) {
-        if ( name === undefined ) {
-            return this._value( 'codes' );
-        }
-        return this._value( 'codes', name, isurl );
-    }
-
-
-    //-- 私有辅助 ------------------------------------------------------------
-
-
-    /**
-     * 初始化回调设置。
-     * @param  {Element} box 容器元素
-     * @param  {Function} resolve 载入就绪回调
-     * @param  {Function} reject 载入失败回调
+     * 设置&保存主题样式。
+     * 如果主题名以 .css 结尾，表示已经是一个样式文件，
+     * 但该文件依然局限于主题目录之下。
+     * @data: String 主题名
      * @return {void}
      */
-    _init( box, resolve, reject ) {
-        this._ifrm.Config.fail = reject;
-        this._ifrm.Config.ready = () => resolve( this );
+    theme: function( evo ) {
+        let _pf = evo.data;
 
-        box.append( this._ifrm );
-    }
+        if ( !_pf.endsWith('.css') ) {
+            _pf = `${evo.data}/${Local.themeStyle}`;
+        }
+        __editor.theme(
+            `${ROOT}${Local.themes}/${_pf}`
+        );
+        localStyle( __editor.name(), 'theme', evo.data );
+    },
+
+    __theme: 1,
 
 
     /**
-     * 通用取值/设置。
-     * 编辑器框架内全局 Api: {
-     *      .heading()    设置/获取标题
-     *      .subtitle()   设置/获取子标题
-     *      .abstract()   设置/获取文章提要
-     *      .content()    设置/获取正文内容
-     *      .seealso()    设置/获取另参见
-     *      .reference()  设置/获取参考文献
-     *      .theme()      设置/获取编辑器主题
-     *      .style()      设置/获取内容风格
-     *      .codes()      设置/获取内容代码风格
-     * }
-     * @param  {String} name 取值名
-     * @param  {...Value} rest 待设置实参序列
-     * @return {String|this}
+     * 设置&保存内容样式。
+     * @data: String 内容样式名
+     * @return {void}
      */
-    _value( name, ...rest ) {
-        let _fn = this._ifrm.contentWindow.Api[name];
+    main: function( evo ) {
+        __editor.style(
+            `${ROOT}${Local.styles}/${evo.data}/${Local.mainStyle}`
+        );
+        localStyle( __editor.name(), 'style', evo.data );
+    },
 
-        if ( rest.length === 0 ) {
-            return _fn();
-        }
-        return ( _fn(...rest), this );
-    }
-
-}
+    __main: 1,
 
 
-/**
- * 创建编辑器框架容器。
- * @param  {Number|String} width 宽度
- * @param  {Number|String} height 高度
- * @return {Element} iframe 节点
- */
-function editorFrame( width, height ) {
-    let _frm = document.createElement('iframe');
+    /**
+     * 设置&保存代码样式。
+     * @data: String 代码样式名
+     * @return {void}
+     */
+    codes: function( evo ) {
+        __editor.codes(
+            `${ROOT}${Local.styles}/${evo.data}/${Local.codeStyle}`
+        );
+        localStyle( __editor.name(), 'codes', evo.data );
+    },
 
-    _frm.setAttribute('scrolling', 'no');
-    _frm.setAttribute('frameborder', '0');
+    __codes: 1,
 
-    for ( let [k, v] of Object.entries(__frameStyles) ) {
-        _frm.style[k] = v;
-    }
-    if ( width !== undefined ) {
-        _frm.style.width = sizeValue( width );
-    }
-    if ( height !== undefined ) {
-        _frm.style.height = sizeValue( height );
-    }
-    return _frm;
-}
+};
 
+
+//
+// 工具函数
+//////////////////////////////////////////////////////////////////////////////
 
 /**
- * 获取尺寸值。
- * 数值可包含单位，无单位默认为像素。
- * @param  {Number|String} val 尺寸值
+ * 获取目标样式URL的本地存储键。
+ * @param  {String} prefix 存储键前缀
+ * @param  {String} type 样式类型名（theme|style|codes）
  * @return {String}
  */
-function sizeValue( val ) {
-    return isNaN( val - parseFloat(val) ) ? val : `${val}px`;
+function styleKey( prefix, type ) {
+    return `${prefix}_${storeStyle[type]}`;
 }
 
 
-// 空操作占位
-function empty() {}
+/**
+ * 获取/存储目标类型样式的本地值。
+ * name实参未定义时为获取。
+ * @param  {String} prefix 存储键前缀
+ * @param  {String} type 样式类型名（theme|style|codes）
+ * @param  {String} name 待保存的样式风格名，可选
+ * @return {String|null}
+ */
+function localStyle( prefix, type, name ) {
+    let _key = styleKey( prefix, type );
 
+    if ( name === undefined ) {
+        return window.localStorage.getItem( _key ) || null;
+    }
+    window.localStorage.setItem( _key, name );
+}
+
+
+// 小玩具
+//0000000000000000000000000000000000000
+
+const $ = window.$;
 
 /**
- * 编辑器创建。
- * 非常规的提交可能不需要<textarea>容器。
- * @param  {Object} option 配置集
- * @param  {String} path 编辑器所在目录路径（相对于Web根）
- * @return {Editor} 编辑器实例
+ * 间歇执行器（玩具）。
+ * 如果用户执行器返回true则终止计时器。
+ * @param {Number} sec 间隔秒数
+ * @param {Function} handle 执行器
  */
-const create = (option, path) => new Editor( option || {}, path );
+function tickdoing( sec, handle = logoColor ) {
+    handle() ||
+    setTimeout( () => tickdoing(sec, handle), sec );
+}
 
 
+let _val = 100, _sel = null;
+
+// 点亮Logo彩色
+function logoColor() {
+    if ( _val < 0 ) {
+        return true;
+    }
+    if ( _sel ) {
+        $.remove( _sel );
+    }
+    _sel = $.style( `main>h1::before{filter:grayscale(${_val--/100})}` );
+}
+
+
+
+//
+// 导入Tpb支持。
+// 自动从<body>开始OBT构建。
+//////////////////////////////////////////////////////////////////////////////
+
+Tpb.init( On, By )
+    .build( document.body )
+    .then( tr => window.console.info('build done!', tr) );
+
+
+
+//
+// On/By 扩展
+//////////////////////////////////////////////////////////////////////////////
+
+// 简单取值。
+customGetter( On, 'styles', Kit.styles );
+
+
+// 简单设置。
+processExtend( By, 'Kit', Kit, [
+    'theme',
+    'main',
+    'codes',
+]);
+
+
+
+//
 // 导出
 //////////////////////////////////////////////////////////////////////////////
 
+export { saveEditor, tickdoing };
 
-export default { create }
 
-
-//
-// 配置导出：
-// 编辑器安装根，由用户安装后修改设置。
-//
-export const setupRoot = '/coolj/';
+//:debug
+window.On = On;
+window.By = By;
