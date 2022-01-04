@@ -20,12 +20,12 @@ const
     // 上层应用的配置嵌入此处，便于开发版源码到正式版的更新覆盖，
     // 即开发版和正式版的此文件虽然不同但各自不变。
     //
-    ROOT = 'http://localhost:8080/articlejs/',
+    ROOT = 'https://zhliner.github.io/coolj/',
 
     //
     // Tpb：本系模板根。
     // 用于获取模板节点的Tpb接口，注意末尾的斜线/。
-    // http://localhost:8080/articlejs/templates/
+    // https://zhliner.github.io/coolj/templates/
     //
     tplRoot = `${ROOT}templates/`;
 
