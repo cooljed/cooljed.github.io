@@ -14,16 +14,12 @@
 
 import { BaseOn, BaseBy } from "./base/tpb/tpb.esm.js";
 
+// 编辑器安装根
+// 配置在Tpb框架里的文件上便于正式版发布。
+import { ROOT } from "./base/tpb/user.js";
+
 
 const
-    //
-    // 编辑器安装根
-    // 由用户安装后修改，注意末尾的斜线/。
-    // 请同时调整Tpb配置文件（base/tpb/config.js）内的本系模板根URL（tplRoot）。
-    //
-    ROOT = 'https://zhliner.github.io/coolj/',
-
-
     //
     // 功能集配置。
     // 可由用户在运行时开启或关闭（命令行config指令）。
@@ -32,7 +28,7 @@ const
 
         // MdLine自动解析开关
         // 内容录入文本框中自动MarkDown单行解析。
-        mdline:     false,
+        mdline:   true,
 
     },
 
@@ -140,6 +136,12 @@ const
 
         // 系统变量不存在提示
         configNothing:  '(^_^)',
+
+        // 命令行replace指令提示
+        needContent: '目标必须是内容元素！',
+
+        // 命令行replace指令提示
+        missContent: '缺少替换的数据文本',
 
     },
 

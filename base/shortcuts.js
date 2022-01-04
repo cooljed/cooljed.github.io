@@ -210,8 +210,21 @@ Content: [
     },
 
     {
+        // 到顶元素。
         "key":      ":t",
         "command":  "focusItemTop"
+    },
+
+    {
+        // 按顺序下一个
+        "key":      ":tab",
+        "command":  "focusSetNext"
+    },
+
+    {
+        // 按顺序前一个
+        "key":      "shift:tab",
+        "command":  "focusSetPrev"
     },
 
 
@@ -495,7 +508,7 @@ Content: [
 
 
     // 原地克隆（成组）。
-    // 选取集内相邻元素分组克隆，插入原组之前（before）。
+    // 选取集内相邻元素分组克隆，插入原组之后（after）。
     // 注：与焦点元素无关。
     {
         "key":      ":c",
@@ -503,7 +516,7 @@ Content: [
     },
 
     // 原地克隆（各别）。
-    // 选取集成员克隆插入原元素之前（before），各自独立。
+    // 选取集成员克隆插入原元素之后（after），各自独立。
     // 注：与焦点元素无关。
     {
         "key":      "shift:c",
@@ -568,6 +581,27 @@ Content: [
     {
         "key":      "shift:b",
         "command":  "elementCloneAfter"
+    },
+
+
+    //
+    // 大小写转换
+    //-----------------------------------------------------
+
+    {
+        "key":      "ctrl:u",
+        "command":  "toUpperCase",
+    },
+
+    // 仅首个字母转为大写
+    {
+        "key":      "alt+ctrl:u",
+        "command":  "toUpperCase1",
+    },
+
+    {
+        "key":      "ctrl:l",
+        "command":  "toLowerCase",
     },
 
 
@@ -687,7 +721,7 @@ Content: [
     // 进入微编辑。
     // 支持当前单击点为光标。
     {
-        "key":      [":m", ":tab"],
+        "key":      ":m",
         "command":  "miniedIn"
     },
 
@@ -705,13 +739,6 @@ Content: [
     {
         "key":      ":p",
         "command":  "properties"
-    },
-
-    // 新建直达。
-    // 显示或切换到内容新建面板。
-    {
-        "key":      ":n",
-        "command":  "contentMake"
     },
 
 ],
