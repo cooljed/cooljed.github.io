@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 
-import { PlugOn } from "../../base/plugins.js";
+import { PlugOn } from "../../base/main.min.js";
 import { customGetter } from "../../base/tpb/tpb.esm.js";
 
 
