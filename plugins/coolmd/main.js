@@ -37,12 +37,9 @@
 onmessage = function( ev ) {
     let _o = ev.data,
         _tmp = {
-            node:   null,
-            result: {
-                HTML: `has ${_o.HTML.length} items and ${_o.HTML.join('').length} bytes`,
-                TEXT: `has ${_o.TEXT.length} items and ${_o.TEXT.join('').length} bytes`,
-            },
-            title:  'HELLO TEST'
+            node:   'coolmd:root',
+            result: _o.HTML.join( '' ),
+            title:  'HTML-MD 转换',
         };
     postMessage( _tmp );
 };

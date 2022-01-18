@@ -1041,7 +1041,7 @@
 
 <!-- 两个定制结构 -->
 
-<ul class="_prop" tpl-name="prop:xolah4li">
+<ul class="_prop" tpl-name="prop:xolah5li">
     <li tpl-node="prop:text1"></li>
     <li tpl-node="prop:href, prop:target, prop:title"></li>
     <li><b>子列表</b>
@@ -1110,4 +1110,14 @@
             <li>如果内容包含有 <code>OBT</code> 交互，则还需要引入 <code>tpb/default.css</code> 系统样式。</li>
         </ul>
     </fieldset>
+</div>
+
+
+<!--插件结果输出：
+    在插件没有模板配置时使用，简单格式化显示。 -->
+<div class="_plugx" tpl-name="plug:result"
+    on="vinit|ev('detail') json(4)"
+    to="/textarea|$value">
+    <label>执行结果：</label>
+    <textarea><!-- 简单填充 --></textarea>
 </div>

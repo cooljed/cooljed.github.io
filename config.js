@@ -57,16 +57,22 @@ const
 
         plugRoot:   'plugins',  // 插件根目录
 
-        // 默认插件配置
+        // 初始插件配置
+        // 不在此处配置的插件可以手动从命令行安装。
         // [插件/目录名, 按钮提示]
         plugList: [
             ['example', '示例插件'],
+            ['coolmd',  'HTML/MD 转换'],
         ],
 
         // 目标插件内文件
         plugMain:   'main.js',      // 主文件
         plugLogo:   'logo.png',     // 按钮图标文件
-        plugConf:   'project.json', // 配置文件
+        plugConf:   'files.json',   // 其它文件配置
+
+        // 模板节点名
+        // 插件结果默认显示框，插件无模板配置时使用。
+        plugResult: 'plug:result',
 
 
         // 样式元素ID
@@ -113,11 +119,14 @@ const
         // 章节空标题占位
         sectionH2: '[ Empty heading ]',
 
-        // 目录标题条（<h3>）
+        // 目录标题条
         tocLabel: '目 录',
 
         // 本地暂存
         localStoreDone: '保存完毕！',
+
+        // 排序完成
+        sortCompleted: '排序完成！',
 
         // section:s1
         sectionNotUp: '顶层章节不可再提升。',
@@ -257,6 +266,7 @@ const Sys = {
     evnFollow:  'update',       // 内容区选中变化跟随激发
     insType:    'edtype',       // 编辑类型更新（普通插入|微编辑）
     covert:     'tips',         // 不可见元素提示
+    info:       'info',         // 状态栏提示通知
     shnav:      'reset',        // 脚本历史分页导航重置
     plugInit:   'init',         // 插件表初始化
     plugIns:    'install',      // 插件安装
