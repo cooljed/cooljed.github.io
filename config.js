@@ -167,7 +167,7 @@ const
 
         'both_conelem': [
             'type:contents',
-            '选中的元素及其父元素都必须为内容元素'
+            '选中的元素及其父元素需为内容元素'
         ],
 
         'merge_types': [
@@ -219,7 +219,12 @@ const
         'not_property': [
             'edit:property',
             '没有可编辑的属性'
-        ]
+        ],
+
+        'not_elrange': [
+            'edit:elrange',
+            '仅可视内联单元可以选取为范围'
+        ],
 
     },
 
