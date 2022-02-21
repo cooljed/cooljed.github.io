@@ -87,7 +87,7 @@ const
         "/themes/Dark-less/icons.css",
         "/themes/Dark-less/images/icons.png",
         "/themes/Dark-less/style.css",
-        "/themes/Dark-less/style-light.css",
+        "/themes/Dark-less/style-ligh.css",
         "/themes/Example/icons.css",
         "/themes/Example/images/icons.png",
         "/themes/Example/style.css",
