@@ -141,9 +141,52 @@ function localStyle( prefix, type, name ) {
 
 
 /**
+ * 目录子表折叠动作。
+ * - 单击链接条目定位到目标章节。
+ * - 单击目录标题条子表折叠子表。
+ * @param  {Element} root 目标列表根
+ * @return {void}
+ */
+function tocFold( root ) {
+    Tpb.build( root, {
+        on: `click(a)|evo(2) paths('nav[role=toc]', 'li') str('>section:nth-of-type(', ')') join str('/', '>h2') $('article') pop $(_1) intoView;
+            click(~h5)|evo(2) parent fold(2)`
+    });
+}
+
+
+/**
+ * 目录滚动条自动隐藏动作。
+ * @param  {Element} root 目录列表根
+ * @return {void}
+ */
+function tocScroll( root ) {
+    Tpb.build( root, {
+        on: "mouseenter|('auto'); mouseleave|('hidden')",
+        to: "|css('overflow-y'); |css('overflow-y')"
+    });
+}
+
+
+/**
+ * 恢复本地暂存的源码。
+ * 如果本地没有内容则简单略过（不影响已有内容）。
+ * @param  {Editor} ed 编辑器实例
+ * @param  {String} evn 触发导入的事件名
+ * @return {Editor} ed
+ */
+function recover( ed, evn ) {
+    let _data = ed.savedhtml();
+    if ( _data ) $.trigger( ed.frame(), evn, _data );
+    return ed;
+}
+
+
+/**
  * 首次导入学习内容。
- * @param {Element} btn 学习条目
- * @param {String} evn 触发事件名
+ * @param  {Element} btn 学习条目
+ * @param  {String} evn 触发事件名
+ * @return {void}
  */
 function firstLearn( btn, evn ) {
     if ( !__editor.content().trim() ) $.trigger( btn, evn );
@@ -158,39 +201,44 @@ const $ = window.$;
 /**
  * 间歇执行器（玩具）。
  * 如果用户执行器返回true则终止计时器。
- * @param {Number} sec 间隔秒数
- * @param {Function} handle 执行器
+ * @param  {Number} sec 间隔秒数
+ * @param  {String} slr 目标选择器
+ * @param  {Function} handle 执行器
+ * @return {void}
  */
-function tickdoing( sec, handle = logoColor ) {
-    handle() ||
-    setTimeout( () => tickdoing(sec, handle), sec );
+function tickdoing( sec, slr, handle = logoColor ) {
+    handle( slr ) ||
+    setTimeout( () => tickdoing(sec, slr, handle), sec );
 }
 
 
 let _val = 100, _sel = null;
 
 // 点亮Logo彩色
-function logoColor() {
+function logoColor( slr ) {
     if ( _val < 0 ) {
         return true;
     }
     if ( _sel ) {
         $.remove( _sel );
     }
-    _sel = $.style( `main>h1::before{filter:grayscale(${_val--/100})}` );
+    _sel = $.style( `${slr}{filter:grayscale(${_val--/100})}` );
 }
 
 
 
 //
-// 导入Tpb支持。
-// 自动从<body>开始OBT构建。
+// 用户页构建。
 //////////////////////////////////////////////////////////////////////////////
 
-Tpb.init( On, By )
-    .build( document.body )
-    .then( tr => window.console.info('build done!', tr) );
+// Tpb支持。
+Tpb.init( On, By ).build( document.body );
 
+
+// PWA 支持
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register( '/coolj-sw.js' );
+}
 
 
 //
@@ -214,7 +262,7 @@ processExtend( By, 'Kit', Kit, [
 // 导出
 //////////////////////////////////////////////////////////////////////////////
 
-export { saveEditor, firstLearn, tickdoing };
+export { saveEditor, recover, firstLearn, tickdoing, tocFold, tocScroll };
 
 
 //:debug

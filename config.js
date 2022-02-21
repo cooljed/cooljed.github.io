@@ -37,8 +37,11 @@ const
         // 上载根目录
         upload: 'upload/data',
 
-        // 编辑器根模板
+        // 默认根模板
         // 相对于上面的安装根（ROOT）。
+        // 注意：
+        // 此根模板可在ROOT之下任意位置，
+        // 但其它自动导入的子模版必须在模板根目录（tplRoot）之下。
         editor: 'templates/editor.html',
 
 
@@ -277,9 +280,8 @@ const Sys = {
     plugIns:    'install',      // 插件安装
     plugDel:    'uninstall',    // 插件卸载
 
-    // 用户接口类事件
-    importCons: 'cimport',      // 内容源码递送通知
-    recover:    'recover',      // 请求从本地存储中恢复（如果有）
+    // 用户接口事件
+    cimport:    'cimport',      // 内容源码递送触发
 
 
     // 模板名定义

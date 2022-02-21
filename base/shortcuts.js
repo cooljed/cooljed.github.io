@@ -51,7 +51,7 @@ export default {
 Global: [
     // 大纲面板切换（隐/显）
     {
-        "key":      ":f2",
+        "key":      ":f4",
         "command":  "panel.outline",
     },
 
@@ -61,9 +61,15 @@ Global: [
         "command":  "panel.slave"
     },
 
+    // 焦取独立/巡游编辑
+    {
+        "key":      ":f2",
+        "command":  "focus.pick"
+    },
+
     // 帮助面板切换（隐/显）
     {
-        "key":      ":f4",
+        "key":      ":f1",
         "command":  "panel.help"
     },
 
@@ -233,11 +239,17 @@ Content: [
     // 原地扩展，焦点不会移动。
     //-----------------------------------------------------
 
-    // 切换选取
+    // 单选
+    {
+        "key":      ":enter",
+        "command":  "only",
+    },
+
+    // 选取切换
     {
         // 空格键用 Space 占位。
         // 注记：实际上的 Event.key 为 ' ' 字符。
-        "key":      [":Space", ":enter"],
+        "key":      ":space",
         "command":  "turn",
     },
 
@@ -800,7 +812,7 @@ Slave: [
             ":k",       // <kbd>
             ":l",       // ...          | ...           | codelist
             ":m",       // <mark>       | math
-            ":n",       // ...          | number        | p:note
+            ":n",       // <dfn>        | number        | p:note
             ":o",       // <code:orz>   | ...           | ol
             ":p",       // <picture>    | punctuation   | p
             ":q",       // <q>

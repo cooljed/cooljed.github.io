@@ -20,6 +20,7 @@ const
     // 上层应用的配置嵌入此处，便于开发版源码到正式版的更新覆盖，
     // 即开发版和正式版的此文件虽然不同但各自不变。
     //
+    //ROOT = 'http://localhost:8001/',
     ROOT = 'https://cooljed.github.io/',
 
     //
