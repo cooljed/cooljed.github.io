@@ -115,7 +115,7 @@ main nav > span > a {
 #editorBox {
     box-sizing: border-box;
     height: 100%;
-    padding: 5px;
+    padding: 2pt 4pt;
 }
 /* 编辑器最大化 */
 #editorBox._full > iframe {
