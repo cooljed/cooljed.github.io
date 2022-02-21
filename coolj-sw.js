@@ -3,6 +3,7 @@ const
 
     __appFiles = [
         '/',
+        "/base/hlparse/base.js",
         "/base/hlparse/languages/cplus.js",
         "/base/hlparse/languages/css.js",
         "/base/hlparse/languages/golang.js",
@@ -50,6 +51,10 @@ const
         "/styles.css",
         "/styles/example/codes.css",
         "/styles/example/main.css",
+        "/styles/hometown/codes.css",
+        "/styles/hometown/main.css",
+        "/styles/wildwide/codes.css",
+        "/styles/wildwide/main.css",
         "/templates/editor.html",
         "/templates/inputs.html",
         "/templates/main.html",
@@ -76,11 +81,20 @@ const
         "/templates/panel.html",
         "/templates/properties.html",
         "/templates/styles.html",
+        "/themes/Classic-gray/icons.css",
+        "/themes/Classic-gray/images/icons.png",
+        "/themes/Classic-gray/style.css",
+        "/themes/Dark-less/icons.css",
+        "/themes/Dark-less/images/icons.png",
+        "/themes/Dark-less/style.css",
+        "/themes/Dark-less/style-light.css",
         "/themes/Example/icons.css",
         "/themes/Example/images/icons.png",
         "/themes/Example/style.css",
+        "/themes/The-blue/icons.css",
+        "/themes/The-blue/images/icons.png",
+        "/themes/The-blue/style.css",
         '/themes/beep.ogg',
-        "/base/hlparse/base.js",
     ];
 
 
