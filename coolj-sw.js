@@ -1,4 +1,6 @@
 const
+    version = 'cooljed-v1.0-20220301',
+
     __cName = 'cooljed-v1',
 
     __appFiles = [
