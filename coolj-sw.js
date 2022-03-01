@@ -125,7 +125,7 @@ async function respondCache( ev, name ) {
     if ( _resp ) {
         return _resp;
     }
-    _resp = await fetch( ev.request );
+    _resp = await fetch( ev.request.url );
     console.log( `[Service Worker] Caching new resource: ${ev.request.url}` );
 
     let cache = await caches.open( name );
