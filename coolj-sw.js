@@ -4,7 +4,7 @@ const
     __cName = 'cooljed-v1',
 
     __appFiles = [
-        '/',
+        "/",
         "/base/hlparse/base.js",
         "/base/hlparse/languages/cplus.js",
         "/base/hlparse/languages/css.js",
@@ -37,7 +37,7 @@ const
         "/editor.js",
         "/favicon.ico",
         "/icons/cooljed.png",
-        "/icons/icon-192.png",
+        "/icons/icon-168.png",
         "/index.js",
         "/plugins/coolmd/extend.js",
         "/plugins/coolmd/files.json",
@@ -98,7 +98,8 @@ const
         "/themes/The-blue/icons.css",
         "/themes/The-blue/images/icons.png",
         "/themes/The-blue/style.css",
-        '/themes/beep.ogg',
+        "/themes/beep.ogg",
+        "/themes/normalize.css",
     ];
 
 

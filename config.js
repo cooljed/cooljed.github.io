@@ -121,6 +121,8 @@ const
 
     // 提示信息集（可本地化）。
     Tips = {
+        // 无障碍提示
+        editorArea: '编辑器主体，单击聚焦',
 
         // 章节空标题占位
         sectionH2: '[ Empty heading ]',
@@ -133,12 +135,6 @@ const
 
         // 排序完成
         sortCompleted: '排序完成！',
-
-        // section:s1
-        sectionNotUp: '顶层章节不可再提升。',
-
-        // 撤销副作用警告
-        undoWarn: '原操作包含创建新节点的能力，撤销后重做可能导致旧节点引用丢失，使得之后的重做失效。是否继续？',
 
         // 命令行搜索回馈
         searchNothing: `没有搜索到`,
@@ -158,6 +154,33 @@ const
         // 命令行replace指令提示
         missContent: '缺少替换的数据文本',
 
+
+        // 内联单元分组名
+        // 在普通模式插入时显示单元集分组。
+        // 即：<optgroup label="...">，请勿相同。
+        /////////////////////////////////////////////
+
+        inlText:    '文本类',   // 如：<strong>、<dfn>
+        inlCtrl:    '控件类',   // 如：<input>、<label>
+        inlEntity:  '实体类',   // 如：<audio>、<img>
+
+
+        // 警告&错误提示信息
+        /////////////////////////////////////////////
+
+        // 撤销副作用警告
+        undoWarn: '警告！\n\n原操作会创建新节点，撤销后再重做会导致旧节点引用丢失。\n这将使得再之后的重做失效，是否继续？',
+
+        // section:s1
+        sectionNotUp: '错误：顶层章节不可再提升。',
+
+        // 虚焦点检查提示
+        repeatSibling: '错误：选取集已包含多个兄弟元素。',
+
+        aloneSibling: '错误：没有更多的兄弟元素。',
+
+        // 表格行格式错误提示头
+        trfmtError: '格式错误：',
     },
 
 
@@ -217,6 +240,11 @@ const
             '仅章节单元（section）支持缩进操作'
         ],
 
+        'only_section_up': [
+            'edit:indentup',
+            '仅中间章节单元（section）支持缩进提升'
+        ],
+
         'only_child': [
             'edit:onlyone',
             '只能作为唯一子元素存在'
@@ -229,7 +257,7 @@ const
 
         'not_elrange': [
             'edit:elrange',
-            '仅可视内联单元可以选取为范围'
+            '仅可视内联单元可以被选取为范围'
         ],
 
     },

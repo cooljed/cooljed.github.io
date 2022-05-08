@@ -76,20 +76,20 @@
     info|focus  确认后聚焦根容器，便于键盘控。
     esced       向ESC栈添加一条记录。
     escpop      从ESC栈移除一条记录。
-    @paste      微编辑粘贴纯文本，清理多余空白（空格替换）。
+    @paste      微编辑粘贴处理，清理多余空白，合法性过滤。
     @keydown    微编辑确认（退出即解绑）。stop 避免上层快捷键操作（放过Shift和Fn+ESC系列）。
     @keydown:x  屏蔽浏览器内置的3个编辑快捷键。兼容性：windows, MacOS。
 -->
 <div class="___Content" tpl-name="main:content"
-    on="@keydown|iskey(2) scam('shift') either end stop ev('key') pass('Enter', 'Tab') avoid ev('key') SCAM;
+    on="@keydown|iskey(14) scam('shift') either end stop ev('key') pass('Enter', 'Tab') avoid ev('key') SCAM;
         cancel|env('minied') pass stop;
         medok|env('minied') pass stop;
         medin|env('minied') end stop delay;
         info|$('#g-scroll') focus;
         esced|evo(3) (ESC) pop;
         escpop|('med', ESC) pop;
-        @paste|avoid clipboard trims(' ') html exeCmd('insertHTML', _1);
-        @keydown:x|SCAM('ctrl', 'meta') pass iskey(6) pass avoid"
+        @paste|avoid clipboard('text/html') inlineHTML exeCmd('insertHTML', _1);
+        @keydown:x|SCAM('ctrl', 'meta') iskey(20) both pass avoid"
     by="Kit.medpass(_1);
         Kit.medcancel"
     to="-;
@@ -105,7 +105,7 @@
         keyup   状态栏数字设置（非数字无效）。
         focus   设置选取范围到内部以捕获copy|cut事件。若范围已在内部则忽略，不影响用户划选。
         copy    Range忽略用户已选取不规则选区的情况（交由浏览器复制逻辑），trims清理内容中的换行，规范换行符用途。
-        paste   普通模式下的粘贴。
+        paste   普通模式下的粘贴。源文本首尾空白有效但纯空白无效。
         keydown|ev('shiftKey') 设置末尾追加式粘贴标记。
         keyup|env('paste:append', null) 清除追加粘贴标记（重置）。
         _focus  内容区聚焦（微编辑除外，否则影响光标）。使得上下文菜单显示时，操作非菜单快捷键可取消菜单。
@@ -114,7 +114,7 @@
         on="keydown|env('minied') end (CHK) acmsk $('#g-count') val int hotKey(_2) pass stop;
             keyup|env('minied') end (/^[\d.-]$/) ev('key') test(_1) pass $('#g-count') val ev('key') add(_1);
             cut|env('minied') end avoid sels text trims(' ') trim join('\n');
-            paste|env('minied') end avoid clipboard trim dup pass split('\n') env('paste:append');
+            paste|env('minied') end avoid clipboard dup trim pass split('\n') env('paste:append');
             focus|env('minied') end wRange hasRange('/main') end $('/main') nodeRange(true) addRange;
             copy|env('minied') end sRange(false) end avoid sels text trims(' ') trim join('\n') pop clipboard;
             keydown|env('minied') end ev('shiftKey') pass env('paste:append', true);
@@ -168,7 +168,7 @@
             <!-- 300:延迟显示，400:延迟隐藏
                 注：sm-1/sm-0 只是一个存储键，非用于事件绑定。 -->
             <li id="m-conv" role="menubar" data-pbo="folded"
-                on="@sm-1|evo(3) dup(2) disabled end fold(0) submenu;
+                on="@sm-1|evo(3) dups(2) disabled end fold(0) submenu;
                     @sm-0|evo(3) fold(1);
                     mouseenter|data('tk-0') timeOut(null) evo(3) chain('sm-1') timeOut(300);
                     mouseleave|data('tk-1') timeOut(null) evo(3) chain('sm-0') timeOut(400)"
@@ -177,7 +177,11 @@
                     |data('tk-1');
                     |data('tk-0')">
                 <h5><b id="l-convert">转换</b></h5>
-                <menu tpl-source="menu:inlines"></menu>
+                <!-- 复用内联创建菜单条目 -->
+                <menu role="submenu" class="_cells" tpl-name="menu:inlines"
+                    on="^obted|$('3/#g-cells') children clone"
+                    to="|fill">
+                </menu>
             </li>
             <hr>
             <li data-op="toup"><b id="l-toup">升级</b><kbd>[Alt_←]</kbd></li>
@@ -204,7 +208,7 @@
                 store|ev('detail') dup rngok pass;
                 show|evo(3) dup lose(false) $('1/') env('pointerXY') menupos(_2);
                 blur|evo(3) lose(true) (null);
-                keydown|ev('key') dup end('Escape') stop slr('/li', '-k', _1) $(_1) dup(2) pass disabled end attr('-val');
+                keydown|ev('key') dup end('Escape') stop slr('/li', '-k', _1) $(_1) dups(2) pass disabled end attr('-val');
                 click(li[data-val])|evo(2) dup disabled end attr('-val');
                 esced|evo(3) (ESC) pop;
                 escpop|('cells', ESC) pop;
@@ -237,8 +241,8 @@
             <li data-k="m" data-val="mark" title="<mark>"><b><mark>标记</mark></b><kbd>m</kbd></li>
             <li data-k="r" data-val="ruby" title="<ruby>">
                 <b><ruby>注音
-                    <rp>(</rp><rt>zhù yīn</rt><rp>)</rp>
-                    </ruby></b>
+                    <rp>(</rp><rt>zhù yīn</rt><rp>)</rp></ruby>
+                </b>
                 <kbd>r</kbd>
             </li>
             <li data-k="o" data-val="orz" title="表情<code:orz>"><b><code role="orz">(^_^)</code></b><kbd>o</kbd></li>
@@ -248,6 +252,8 @@
             <li data-val="s" title="<s>"><b><s>失效</s></b><kbd></kbd></li>
             <li data-k="v" data-val="var" title="<var>"><b><var>变量</var></b><kbd>v</kbd></li>
             <li data-k="u" data-val="u" title="<u>"><b><u>注记</u></b><kbd>u</kbd></li>
+            <li data-val="bdi" title="<bdi>"><b><bdi>方向隔离</bdi></b><kbd></kbd></li>
+            <li data-val="crumb" title="<span:crumb>"><b><span role="crumb">碎片段</span></b><kbd></kbd></li>
             <li data-k="b" data-val="bdo" title="<bdo dir=rtl>"><b><bdo dir="rtl">有向文本</bdo></b><kbd>b</kbd></li>
             <li data-pbo="disabled">&nbsp;</li>
             <li data-val="b" title="<b>"><b>特用&lt;b&gt;</b><kbd></kbd></li>
@@ -256,14 +262,14 @@
         <!--内容区：
             click(*) 单击相关操作。avoid取消链接单击跳转。
                      注：按Shift单击并不会有浏览器聚焦，因此需主动聚焦。
-            focus(audio,video) 单击选取在音/视频元素上无效，故借助聚焦（但无键盘按键信息）。
+            focus(~audio,...) 单击选取在音/视频元素上无效，故借助聚焦（但无键盘按键信息）操作。
             cancel   选取集取消（ESC）。
             mouseup  弹出内联单元创建表。划选完整嵌套，非空，发送Range。同时存储鼠标指针和滚动条位置。
-            _mouseup 用于程序激发弹出菜单（上下文菜单选取元素）。
+            _mouseup 用于程序激发弹出菜单（上下文菜单“选取”元素时用）。
             mouseover(*),mouseout(*)|...('_hover') 提供样式定位依据。
             mouseleave|end 重置状态栏，除非已有计数指定。
             mousedown|...avoid 避免 Shift+单击 变成划选（已经有划选除外）。
-            mouseup([contenteditable])... 微编辑光标记忆，用于特殊字符插入。注：keyup-全选，focus-无点击进入。
+            click([contenteditable])... 微编辑光标记忆，用于特殊字符插入。delay确认选区为单击点，否则可能为容器本身。
             puthtml 整体导入内容源码（可撤销），同时滚动到顶部。
                     注：微编辑状态下无效，否则新内容中普通操作无效。
             click(~) 在内容区为空时插入一个主标题占位（以便开始工作）。
@@ -277,11 +283,11 @@
                 mouseout(*)|env('minied') end ('_hover');
                 mouseover(*)|env('minied') end $('#g-count') val end evo(1) dup einfo(true) roleinfo(_1) str('<', '>');
                 mouseleave|env('minied') end $('#g-count') val end;
-                mouseup|stop env('minied') end ev('pageX pageY') env('pointerXY', _1) sRange(null) dup pass;
-                _mouseup|env('minied') end sRange(null) dup pass;
+                mouseup|env('minied') end ev('pageX pageY') env('pointerXY', _1) sRange('') dup pass;
+                _mouseup|env('minied') end sRange('') dup pass;
                 contextmenu|env('minied') end avoid ev('pageX pageY') env('pointerXY', _1);
                 mousedown|env('minied') end sRange(true) ev('shiftKey') both pop avoid;
-                mouseup([contenteditable]) keyup([contenteditable]) input focus([contenteditable])|env('minied') pass sRange pop xRange stop"
+                click([contenteditable]) keyup([contenteditable]) input|env('minied') pass delay sRange pop xRange stopAll"
             by="Ed.click(_1);
                 Kit.ecancel;
                 Kit.puthtml (0);
@@ -467,12 +473,12 @@
     </div>
     <!--出错提示：
         click 滚动问题元素（可能为null）到视口中间，主窗口聚焦友好。
-        mouseover 问题元素背影提示。-->
+        mouseenter/mouseleave 问题元素背影提示。如果无存储静默略过。-->
     <div id="err-msg" class="_err" data-pbo="lost"
         on="click|evo(3) source dup pass dup intoView(2) SCAM;
             tips|$('/>a') attr('-hid');
-            mouseenter|('_warn') evo(3) source pop;
-            mouseleave|('_warn') evo(3) source pop;
+            mouseenter|('_warn') evo(3) source dup pass pop;
+            mouseleave|('_warn') evo(3) source dup pass pop;
             off|evo(3) lose;
             on|evo(3) lose(0)"
         by="Kit.errmsg(_1)"
@@ -504,3 +510,34 @@
         <code>?</code>
     </div>
 </div>
+
+
+
+<!--转换条目（子菜单）
+    data-val 待转换目标单元名。
+    <kbd>    单字符快捷键直达。
+    注：仅包含完整的单元（不含中间结构）。
+----------------------------------------------------------------------------->
+
+<!-- 行块单元（仅部分） -->
+<menu role="submenu" tpl-name="menu:blocks">
+    <li data-k="p" data-val="p" title="<p>"><b>段落</b><kbd>p</kbd></li>
+    <li data-k="n" data-val="note" title="<p:note>"><b>注解</b><kbd>n</kbd></li>
+    <li data-k="t" data-val="tips" title="<p:tips>"><b>提示</b><kbd>t</kbd></li>
+    <li data-val="pre" title="<pre>"><b>预排版</b><kbd></kbd></li>
+    <li data-val="address" title="<address>"><b>地址</b><kbd></kbd></li>
+    <li data-k="u" data-val="ul" title="<ul>"><b>无序列表</b><kbd>u</kbd></li>
+    <li data-k="o" data-val="ol" title="<ol>"><b>有序列表</b><kbd>o</kbd></li>
+    <li data-val="ulx" title="<ul:ulx>"><b>无序级联表</b><kbd></kbd></li>
+    <li data-val="olx" title="<ol:olx>"><b>有序级联表</b><kbd></kbd></li>
+    <li data-k="c" data-val="cascade" title="<ol:cascade>"><b>级联编号表</b><kbd>c</kbd></li>
+    <li data-k="b" data-val="blockquote" title="<blockquote>"><b>块引用</b><kbd>b</kbd></li>
+    <li data-k="a" data-val="aside" title="<aside>"><b>批注</b><kbd>a</kbd></li>
+    <li data-val="details" title="<details>"><b>详细内容</b><kbd></kbd></li>
+    <!-- 注：<dl>不可为转换目标，因为无<dt>源（逻辑上）。 -->
+    <!-- <li data-k="d" data-val="dl" title="<dl>"><b>描述列表</b><kbd>d</kbd></li> -->
+</menu>
+
+<!-- 空占位菜单（replace） -->
+<menu role="submenu" data-pbo="hidden" tpl-name="menu:empty">
+</menu>

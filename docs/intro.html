@@ -4,29 +4,38 @@
 <meta charset="utf-8" />
 <title>简介-快速入门</title>
 <link rel="shortcut icon" href="../favicon.ico">
-<link rel="stylesheet" href="../styles/example/main.css" />
-<link rel="stylesheet" href="../styles/example/codes.css" />
+<link id="s-main" rel="stylesheet" href="../styles/example/main.css" />
+<link id="s-code" rel="stylesheet" href="../styles/example/codes.css" />
 <link rel="stylesheet" href="../base/tpb/default.css" />
 <script src="../base/tquery/tquery.min.js"></script>
-<style>
-    body {
-        margin: 0;
-    }
-    main {
-        width: 800px;
-        margin-left: 21em;
-    }
-</style>
+<link rel="stylesheet" href="./base.css" />
+
 <script type="module" async>
-    import { tocFold } from "../index.js";
-    tocFold( $.get('nav') );
+    import { tocFold_toTop, tocFoldSub_toTop, tocWidth, styleSwitch } from "../index.js";
+
+    tocFold_toTop( $.get('nav[role=toc]') );
+    tocFoldSub_toTop( $.get('nav[role=toc]>ol') );
+    tocWidth( $.get('nav[role=toc]>hr'), 'body' );
+
+    styleSwitch( $.get('nav._bar select'), '-dark' );
 </script>
 </head>
 <body>
+    <nav class="_bar">
+        <span>
+            <label>内容样式</label>
+            <select name="styles">
+                <option value="example"> ------ </option>
+                <option value="hometown">乡愁</option>
+                <option data-dark="yes" value="wildwide">旷野无垠</option>
+            </select>
+        </span>
+    </nav>
     <main class="content">
         <h1>快速入门</h1>
         <nav role="toc">
-            <h4>目录</h4>
+            <h4><a>目 录</a></h4>
+            <hr />
             <ol role="cascade">
                 <li>
                     <h5><a>内容区和功能区</a></h5>
@@ -37,7 +46,7 @@
                             <h5><a>普通模式</a></h5>
                             <ol>
                                 <li><a>焦点移动</a></li>
-                                <li><a>选取切换</a></li>
+                                <li><a>单选与多选</a></li>
                             </ol>
                         </li>
                     </ol>
@@ -66,8 +75,7 @@
                     <li><kbd>M</kbd>：进入<strong>修订</strong>（Modify）模式，修改目标元素内的内容。按回车（<kbd>Enter</kbd>）键确认。</li>
                     <li><kbd>U</kbd> / <kbd>R</kbd>：各种撤销（<code>Undo</code>）与重做（<code>Redo</code>）。</li>
                     <li><kbd>Ctrl+S</kbd>：保存文章内容到浏览器本地，重新打开或<em>刷新</em>页面即会自动载入。</li>
-                    <li><kbd>ESC</kbd>：各种<em>取消</em>。支持<code>选取集</code>、<code>上下文菜单</code>、<code>内联创建菜单</code>、<code>模态框</code>、<code>修订模式</code>、<code>前置数字</code>、<code>录入框平铺</code>等。
-                    </li>
+                    <li><kbd>ESC</kbd>：各种<em>取消</em>。支持<code>选取集</code>、<code>上下文菜单</code>、<code>内联创建菜单</code>、<code>模态框</code>、<code>修订模式</code>、<code>前置数字</code>、<code>录入框平铺</code>等。</li>
                 </ul>
             </header>
             <section role="s1">

@@ -1,10 +1,9 @@
-/*! example.css 2019.11.16 Cooljed.Style $
- +++++++++++++++++++++++++++++++++++++++++++++
+/*! hometown.css 2022.04.15 Cooljed.Style $
+ ++++++++++++++++++++++++++++++++++++++++++++++
  *
- *  基本样式的格式示例，
- *  其它样式可据此结构修改创建。
+ *  亮色调风格，点缀土黄和绿野。
  *
- *  @name   经典中灰
+ *  @name   乡愁
  *  @author 风林 zhliner@gmail.com
  *
  *****************************************************************************/
@@ -35,6 +34,9 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     padding: 0 20px;
     font-size: 11pt;
     background-color: white;
+
+    /* 避免头部<h1>空白 */
+    border: 1px transparent solid;
 }
 
 .content table {
@@ -92,6 +94,13 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 }
 .content h5 {
     font-size: 1.0em;
+}
+.content h6 {
+    font-size: 1.0em;
+}
+
+.content section {
+    clear: both;
 }
 
 /* 地址 */
@@ -220,7 +229,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
  *----------------------------------------------------------------------------
  */
 .content nav[role=toc] {
-    padding: 6px 0;
+    padding: 5pt 1px 0;
     border: 1px #e3e3e0 solid;
     background-color: rgba(245, 245, 245, 0.7);
     display: inline-block;
@@ -233,25 +242,35 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 /* 页面固定 */
 .content nav[role=toc] {
     position: fixed;
-    top: 0.5em;
+    top: 0.4em;
     left: 1em;
     box-sizing: border-box;
-    height: 98%;
-    cursor: default;
+    height: 98vh;
+    width: 20em;
+
+    /* 列表可滚动 */
+    display: flex;
+    flex-direction: column;
 }
 
-/* 目录级联编号 */
+.content nav[role=toc] > hr {
+    height: 1em;
+    border-width: 0;
+    border-bottom: 1px gray dotted;
+    margin: 0;
+}
+
+/* 目录级联表 */
 .content nav[role=toc] > ol[role=cascade] {
     height: calc(100% - 70px);
     overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .content nav[role=toc] h4 {
     font-size: 1.17em;
     margin: 7px 4px 0;
-    padding-bottom: 10px;
     text-align: center;
-    border-bottom: 1px #ccc dashed;
 }
 
 .content nav[role=toc] > ol {
@@ -272,6 +291,7 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 .content nav[role=toc] a {
     color: #36b;
     text-decoration: none;
+    cursor: pointer;
 }
 .content nav[role=toc] a:visited {
     color: gray;
@@ -281,19 +301,25 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     text-decoration: underline;
 }
 
-/* 子表折叠 */
+/* 目录&子表折叠 */
 .content nav[role=toc] li[data-pbo=folded] {
     background-color: #e8f2f2;
     border-radius: 4px 2em 0 0;
 }
+.content nav[role=toc] > h4::after,
 .content nav[role=toc] li > h5::after {
-    content: '－';
+    content: '-';
     float: right;
-    margin-right: 1em;
+    margin-right: 0.6em;
     color: green;
+    font-family: monospace;
 }
+.content nav[role=toc] > h4::after {
+    margin-right: 1.8em;
+}
+.content nav[role=toc][data-pbo=folded] > h4::after,
 .content nav[role=toc] li[data-pbo=folded] > h5::after {
-    content: '＋';
+    content: '+';
     color: #e9a279;
 }
 
@@ -582,6 +608,20 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 }
 
 
+/* 控件分组
+ *----------------------------------------------------------------------------
+ */
+.content fieldset {
+    padding: 1em;
+    border-radius: 10pt 10pt 4pt 4pt;
+    border: 1px green solid;
+}
+.content legend {
+    padding: 0 2pt;
+    font-style: italic;
+}
+
+
 /* 分隔
  * (Horizontal Rule)
  *----------------------------------------------------------------------------
@@ -706,6 +746,21 @@ div[role=blank] > * {
 }
 
 
+/* 控件
+ * ------------------------------------
+ */
+.content select {
+    min-width: 7em;
+    vertical-align: middle;
+}
+.content button,
+.content input[type=submit],
+.content input[type=reset] {
+    margin: 0 2pt;
+    padding: 1pt 1em;
+}
+
+
 /* 代码
  ****************************************************************************/
 
@@ -716,10 +771,6 @@ div[role=blank] > * {
     background-color: #f6f1ea;
     border-radius: 2px;
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-}
-
-.content code[data-lang] {
-    border: 1px #e8e8e8 solid;
 }
 
 .content table code {
@@ -735,12 +786,13 @@ div[role=blank] > * {
     overflow: auto;
     box-shadow: 1px 1px 4px #eee;
 }
+.content pre[role=codeblock] * {
+    line-height: 170%;
+}
 .content pre[role=codeblock] > code {
     display: block;
     font-size: 10pt;
-    border-width: 0;
     background-color: transparent;
-    line-height: 160%;
 }
 
 /* 代码表

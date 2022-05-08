@@ -149,6 +149,7 @@ Global: [
 
     // 章节跳转。
     // 由用户键入的前置数字表达（如：3.2.5）。
+    // 注：0 值表示文章头部。
     {
         "key":      ":g",
         "command":  "main.chapter",
@@ -634,12 +635,24 @@ Content: [
         "key":      ["alt:k", "alt:ArrowUp"],
         "command":  "movePrevious"
     },
+    // 友好：
+    // 直接移动到前端。
+    {
+        "key":      ["alt+shift:k", "alt+shift:ArrowUp"],
+        "command":  "moveToStart"
+    },
 
     // 向后移动（↓）。
     // 支持数字指定移动距离，说明同上。
     {
         "key":      ["alt:j", "alt:ArrowDown"],
         "command":  "moveNext"
+    },
+    // 友好：
+    // 直接移动到末尾。
+    {
+        "key":      ["alt+shift:j", "alt+shift:ArrowDown"],
+        "command":  "moveToEnd"
     },
 
     // 减少缩进（←）。
@@ -810,7 +823,7 @@ Slave: [
             ":h",       // ...          | ...           | header
             ":i",       // <img>        | ipa87
             ":k",       // <kbd>
-            ":l",       // ...          | ...           | codelist
+            ":l",       // <label>      | ...           | codelist
             ":m",       // <mark>       | math
             ":n",       // <dfn>        | number        | p:note
             ":o",       // <code:orz>   | ...           | ol

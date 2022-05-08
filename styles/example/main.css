@@ -41,6 +41,9 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
     padding: 0 20px;
     font-size: 11pt;
     background-color: white;
+
+    /* 避免头部<h1>空白 */
+    border: 1px transparent solid;
 }
 
 .content table {
@@ -98,6 +101,13 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 }
 .content h5 {
     font-size: 1.0em;
+}
+.content h6 {
+    font-size: 1.0em;
+}
+
+.content section {
+    clear: both;
 }
 
 /* 地址 */
@@ -226,38 +236,48 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
  *----------------------------------------------------------------------------
  */
 .content nav[role=toc] {
-    padding: 6px 0;
+    padding: 5pt 1px 0;
     border: 1px #e3e3e0 solid;
     background-color: rgba(245, 245, 245, 0.7);
     display: inline-block;
     border-radius: 4px;
     font-size: 10pt;
     box-shadow: 1px 1px 4px #bbb;
-    min-width: 20em;
+    min-width: 18em;
 }
 
 /* 页面固定 */
 .content nav[role=toc] {
     position: fixed;
-    top: 0.5em;
+    top: 0.4em;
     left: 1em;
     box-sizing: border-box;
-    height: 98%;
-    cursor: default;
+    height: 98vh;
+    width: 20em;
+
+    /* 列表可滚动 */
+    display: flex;
+    flex-direction: column;
+}
+
+.content nav[role=toc] > hr {
+    height: 1em;
+    border-width: 0;
+    border-bottom: 1px gray dotted;
+    margin: 0;
 }
 
 /* 目录级联表 */
 .content nav[role=toc] > ol[role=cascade] {
     height: calc(100% - 70px);
     overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .content nav[role=toc] h4 {
     font-size: 1.17em;
     margin: 7px 4px 0;
-    padding-bottom: 10px;
     text-align: center;
-    border-bottom: 1px #ccc dashed;
 }
 
 .content nav[role=toc] > ol {
@@ -278,28 +298,35 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 .content nav[role=toc] a {
     color: #36b;
     text-decoration: none;
+    cursor: pointer;
 }
 .content nav[role=toc] a:visited {
     color: gray;
 }
 
-.content nav[role=toc] a:hover {
+.content nav[role=toc] li a:hover {
     text-decoration: underline;
 }
 
-/* 子表折叠 */
+/* 目录&子表折叠 */
 .content nav[role=toc] li[data-pbo=folded] {
     background-color: #e8f2f2;
     border-radius: 4px 2em 0 0;
 }
+.content nav[role=toc] > h4::after,
 .content nav[role=toc] li > h5::after {
-    content: '－';
+    content: '-';
     float: right;
-    margin-right: 1em;
+    margin-right: 0.6em;
     color: green;
+    font-family: monospace;
 }
+.content nav[role=toc] > h4::after {
+    margin-right: 1.8em;
+}
+.content nav[role=toc][data-pbo=folded] > h4::after,
 .content nav[role=toc] li[data-pbo=folded] > h5::after {
-    content: '＋';
+    content: '+';
     color: #e9a279;
 }
 
@@ -566,7 +593,6 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 /* 表格
  *----------------------------------------------------------------------------
  */
-
 .content tbody tr>:first-child,
 .content tfoot tr>:first-child {
     text-align: start;
@@ -599,6 +625,20 @@ main, header, section, footer, article, figure, figcaption, hgroup, aside, detai
 /* 表脚区隔 */
 .content tfoot > tr:first-child {
     border-top: 3px #08c double;
+}
+
+
+/* 控件分组
+ *----------------------------------------------------------------------------
+ */
+.content fieldset {
+    padding: 1em;
+    border-radius: 6pt;
+    border: 1px gray solid;
+}
+.content legend {
+    padding: 0 2pt;
+    font-style: italic;
 }
 
 
@@ -718,11 +758,31 @@ div[role=blank] > * {
     padding: 1px 5px;
 }
 
+/* 碎片段 */
+.content span[role=crumb] {
+    font-style: italic;
+}
+
 /* 空白 */
 .content span[role=space] {
     display: inline-block;
     width: 2em;
     height: 0.8em;
+}
+
+
+/* 控件
+ * ------------------------------------
+ */
+.content select {
+    min-width: 7em;
+    vertical-align: middle;
+}
+.content button,
+.content input[type=submit],
+.content input[type=reset] {
+    margin: 0 2pt;
+    padding: 1pt 1em;
 }
 
 
@@ -738,10 +798,6 @@ div[role=blank] > * {
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
-.content code[data-lang] {
-    border: 1px #e8e8e8 solid;
-}
-
 .content table code {
     background-color: transparent;
 }
@@ -755,12 +811,13 @@ div[role=blank] > * {
     overflow: auto;
     box-shadow: 1px 1px 4px #eee;
 }
+.content pre[role=codeblock] * {
+    line-height: 170%;
+}
 .content pre[role=codeblock] > code {
     display: block;
     font-size: 10pt;
-    border-width: 0;
     background-color: transparent;
-    line-height: 160%;
 }
 
 /* 代码表

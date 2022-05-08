@@ -8,12 +8,12 @@
  *
  *****************************************************************************/
 
+@import '../normalize.css';
 @import 'icons.css';
 
 
 body {
     display: flex;
-    margin: 0;
 }
 body > * {
     flex-shrink: 0;
@@ -32,6 +32,7 @@ body > hr {
     border-radius: 3px;
     background-color: #111;
     cursor: ew-resize;
+    height: auto;
 }
 
 /* 编辑器容器 */
@@ -47,8 +48,8 @@ div.Editor {
 /* 大纲&帮助面板 */
 aside.Help,
 aside.Outline {
-    width: 240px;
-    min-width: 180px;
+    width: 256px;
+    min-width: 200px;
     background-color: #282824;
 }
 
@@ -62,7 +63,7 @@ aside.Outline {
     background-color: #282820;
 }
 .___Content ._scroll:focus {
-    background-color: #af6202;
+    background-color: #e2631a;
 }
 .___Content main.content {
     margin: 0 1pt;
@@ -136,7 +137,11 @@ aside.Outline {
 .___Content main meter:empty::after,
 .___Content main span[role=space]:empty::after,
 .___Content main div[role=blank]:empty::after,
-.___Content main li>code:empty::after {
+.___Content main li>code:empty::after,
+.___Content main input:empty::after,
+.___Content main textarea:empty::after,
+.___Content main progress:empty::after,
+.___Content main select:empty::after {
     content: none;
 }
 /* 扩展方便点选 */
@@ -259,6 +264,7 @@ aside.Outline {
 }
 .___Panel textarea {
     font-size: 12pt;
+    border: 1px gray solid;
     line-height: 30px;
     background: local url(images/txtline.png) repeat #1d4649;
 }
@@ -285,8 +291,20 @@ aside.Outline {
 .___Panel input {
     outline: none;
 }
+.___Panel fieldset {
+    padding: 4px;
+    border-radius: 7pt;
+    border: 1px #666 solid;
+}
 .___Panel legend {
     padding: 0 4px;
+    margin-left: 0.5em;
+    color: #bbb;
+    font-style: italic;
+}
+.___Panel fieldset > label {
+    display: block;
+    margin: 2pt 1em;
 }
 
 /* 侧栏灰度线 */
@@ -604,6 +622,7 @@ menu._cells {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
+    padding: 2px 1px 6px;
 }
 menu._cells > li {
     padding: 3px 10px 3px 24px;
@@ -961,7 +980,7 @@ menu._cells code {
 
 .Slave {
     flex: 0 0 auto;
-    min-height: 240px;
+    min-height: 300px;
     height: 28vh;
     background-color: #182e34;
     display: flex;
@@ -1075,7 +1094,7 @@ menu._cells code {
 .Slave aside hr {
     border: 1px #666 solid;
     border-bottom-color: #111;
-    margin: 6px 0 7px;
+    margin: 6pt 0;
 }
 
 /* 录入框填充 */
@@ -1168,12 +1187,16 @@ menu._cells code {
 .Input ._Figure textarea:last-child {
     margin-top: 4px;
 }
+.Input ._Figure fieldset {
+    font-size: small;
+}
 .Input ._inert {
     max-height: 2.4em;
     /* 小字体有用 */
     min-height: 32px;
 }
 
+/* 引用块 */
 .Input ._Blockquote ._cite {
     margin-bottom: 3px;
 }
@@ -1181,6 +1204,24 @@ menu._cells code {
     border-color: #268791;
     border-top-right-radius: 25px;
     background-color: #00302d;
+}
+
+/* 控件分组 */
+.Input ._Fieldset ._main {
+    border: 1px #93c8e2 solid;
+    border-radius: 5px 1px 1px 5px;
+}
+.Input ._Fieldset fieldset {
+    flex: 1 1 auto;
+    margin: 1.2em 1.4em 0.4em;
+    border: 1px gray solid;
+}
+.Input ._Fieldset legend {
+    padding: 0 1pt;
+}
+.Input ._Fieldset legend input {
+    border-color: #60acd2;
+    background-color: #ffe;
 }
 
 /* 分割（覆盖） */
@@ -1235,6 +1276,22 @@ menu._cells code {
 }
 .Input ul._prop li._text2 textarea {
     overflow-y: auto;
+}
+
+/* 内联控件示例 */
+.Input ul._ctrl textarea[name=sample] {
+    background: none;
+    color: currentColor;
+    background-color: #f7f7f7;
+    width: 18em;
+    font-size: 1em;
+}
+.Input ul._ctrl select[name=sample] {
+    min-width: 11em;
+}
+.Input ul._ctrl input[type=submit],
+.Input ul._ctrl  input[type=reset] {
+    padding: 1pt 1em;
 }
 
 
@@ -1308,10 +1365,10 @@ menu._cells code {
 
 /* 对齐 */
 .Style ._Align select._list {
-    min-width: 153px;
+    min-width: 140px;
 }
-.Style ._Align ._v {
-    margin-left: 15px;
+.Style ._Align > div {
+    margin-right: 14px;
 }
 .Style ._Align label {
     font-style: italic;
@@ -1789,11 +1846,15 @@ menu._cells code {
 
 .Modal form._page {
     flex-grow: 1;
-    margin: 30px;
+    margin: 8vh 10vw;
 }
 .Modal form._usual {
-    width: 600px;
-    height: 480px;
+    min-width: 600px;
+    max-width: 800px;
+    width: 48vw;
+    height: 48vh;
+    min-height: 480px;
+    max-height: 600px;
 }
 .Modal p._note {
     color: #b60;

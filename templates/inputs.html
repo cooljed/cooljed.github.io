@@ -1,11 +1,11 @@
 <!-- 选项：1 -->
 <div class="_option" tpl-name="input:option1">
-    <label title="清除连续空白"><input type="checkbox" name="clean" checked>空白清理</label>
+    <label title="清除多余空白"><input type="checkbox" name="clean" checked>空白清理</label>
 </div>
 
 <!-- 选项：2 -->
 <div class="_option" tpl-name="input:option2">
-    <label title="清除连续空白"><input type="checkbox" name="clean" checked>空白清理</label>
+    <label title="清除多余空白"><input type="checkbox" name="clean" checked>空白清理</label>
     <label title="连续多个空行视为一个"><input type="checkbox" name="split" checked>空行分段</label>
 </div>
 
@@ -65,6 +65,8 @@
 
 <!--普通插入：行块单元
     录入版右侧主栏版块（replace）。
+    注记：
+    创建事件需定义在._body容器元素上（由表单转发）。
 ----------------------------------------------------------------------------->
 
 <!-- 段落 -->
@@ -406,7 +408,7 @@
 
 <!-- 代码表 -->
 <div class="_body _Codelist" obt-src="obts/codes.json" tpl-name="input:codelist"
-    on="node|ev('detail') codels $('form/') valo('lang start') (true)"
+    on="node|ev('detail') codels $('form/') valobj('lang start') (true)"
     by="New.codelist(_2)"
     to="form/|trigger('insert')">
     <div class="_main">
@@ -612,7 +614,7 @@
 
 <!-- 插图 -->
 <div class="_body _Figure" tpl-name="input:figure"
-    on="create|$('/._code') text $('/select') val image3(_1) $('form/') valo('figcaption explain')"
+    on="create|$('/._code') text $('/select') val image3(_1) $('form/') valobj('figcaption explain')"
     by="New.figure(_1)"
     to="form/|trigger('insert')">
     <div class="_main"
@@ -625,11 +627,11 @@
             <label><input name="below" type="checkbox" />标题在下</label>
         </header>
         <pre tpl-node="!prop:codes"></pre>
-        <textarea name="explain" placeholder="讲解文字，可选" class="_inert"></textarea>
+        <textarea name="explain" data-pbo="lost" class="_inert" placeholder="讲解文字，可选"></textarea>
     </div>
     <aside>
         <div class="_option">
-            <label>类型
+            <label>资源
                 <select name="type"
                     on="change|evo(3) prop('selected') attr('-tip')"
                     to="._body/pre._code|@-tip">
@@ -638,7 +640,15 @@
                     <option value="svg" data-tip="<svg>...</svg>">SVG源码</option>
                 </select>
             </label>
-            <!-- 注记：讲解定位放到属性定义 -->
+            <hr />
+            <fieldset>
+                <legend>讲解</legend>
+                <label><input type="radio" name="texts" value="" checked />无讲解</label>
+                <label><input type="radio" name="texts" value="explain" />在图片之上</label>
+                <label><input type="radio" name="texts" value="ul" />无序列表</label>
+                <label><input type="radio" name="texts" value="ol" />有序列表</label>
+                <label><input type="radio" name="texts" value="p" />多段落说明</label>
+            </fieldset>
         </div>
         <div tpl-node="input:insert2"> [插入2] </div>
     </aside>
@@ -646,7 +656,7 @@
 
 <!-- 引用块 -->
 <div class="_body _Blockquote" obt-src="obts/list2ps.json" tpl-name="input:blockquote"
-    on="nodes|ev('detail') wrap('<p>') $('form/') valo('h4 cite') (true)"
+    on="nodes|ev('detail') wrap('<p>') $('form/') valobj('h4 cite') (true)"
     by="New.blockquote(_2)"
     to="form/|trigger('insert')">
     <div class="_main">
@@ -694,7 +704,7 @@
     <div class="_main">
         <header class="_affix">
             <input type="text" name="summary" placeholder="摘要" class="_scale" />
-            <label><input type="checkbox" name="open" checked />默认展开</label>
+            <label><input type="checkbox" name="open" />默认展开</label>
         </header>
         <textarea name="details" placeholder="详细内容"></textarea>
     </div>
@@ -727,10 +737,45 @@
     </aside>
 </div>
 
+<!--控件分组
+    空白文本值表示无值，不创建目标单元或特性。 -->
+<div class="_body _Fieldset" tpl-name="input:fieldset"
+    on="create|$('form/') valobj('legend id name') clean('', null)"
+    by="New.fieldset(_1)"
+    to="form/|trigger('insert')">
+    <div class="_main">
+        <fieldset>
+            <legend title="<legend>">
+                <input type="text" name="legend" placeholder="标题" />
+            </legend>
+        </fieldset>
+        <ul class="_prop">
+            <li tpl-node="item:name, item:id"></li>
+        </ul>
+    </div>
+    <aside>
+        <div tpl-node="input:insert2"> [插入2] </div>
+    </aside>
+</div>
+
+<!--控件分组标题
+    注记：单独插入时允许空白插入空值单元。 -->
+<div class="_body _Legend" obt-src="obts/itexts.json" tpl-name="input:legend"
+    on="node|ev('detail')"
+    by="New2.legend"
+    to="form/|trigger('insfix')">
+    <div class="_main">
+        <textarea name="legend" placeholder="控件分组标题，空行分项（多选对应）"></textarea>
+    </div>
+    <aside>
+        <div tpl-node="input:update"> [更新] </div>
+    </aside>
+</div>
+
 
 <!-- 分割 -->
 <div class="_body _Hr" tpl-name="input:hr"
-    on="create|$('form/') valo('role thick length space')"
+    on="create|$('form/') valobj('role thick length space')"
     by="New.hr(_1)"
     to="form/|trigger('insert')">
     <div class="_main _list">
@@ -909,7 +954,7 @@
     by="New2.figcaption"
     to="form/|trigger('insfix')">
     <div class="_main">
-        <textarea name="figcaption" placeholder="插图标题：多选时空行分项，各别更新"></textarea>
+        <textarea name="figcaption" placeholder="多选时空行分项，各别更新"></textarea>
     </div>
     <aside>
         <pre tpl-node="input:option1, input:update">
@@ -980,23 +1025,36 @@
 </div>
 
 <div class="_body _Tr" tpl-name="input:tr"
-    on="create|$('textarea') val dup pass splitx $('/input[name=clean]') prop('checked') pretreat1(_1) trbox obj('tsec')"
-    by="New.tr(_1)"
+    on="create|$('/textarea') val dup pass splitx $('/[name=clean]') prop('checked') pretreat1(_1) $('/[name=fmt]') prop('checked') trfmt(_1) trbox obj('tsec')"
+    by="New2.tr(_1)"
     to="form/|trigger('insert')">
-    <div class="_main">
-        <textarea name="tr" placeholder="一行一个单元格"></textarea>
+    <div class="_main" data-td="一行一个单元格" data-tds="|[ 单元格 ][ 单元格 ][ 单元格 ]"
+        on="tip2x|evo(3) ev('detail') str('-') attr(_1);
+            ^obted|evo(3) attr('-td')"
+        to="/textarea|$placeholder;
+            /textarea|$placeholder">
+        <textarea name="tr" placeholder=""></textarea>
     </div>
     <aside>
-        <pre tpl-node="input:option1, input:insert2">
-            [选项1]
-            [插入2]
-        </pre>
+        <div class="_option">
+            <label title="清除多余空白"><input type="checkbox" name="clean" checked>空白清理</label>
+            <label title="支持多行插入">
+                <!--格式切换：
+                    click 切换录入框提示
+                    td  一行一个单元格，总共一行。
+                    tds 一行即一行，多个单元格，支持多行。 -->
+                <input type="checkbox" name="fmt" data-t="td"
+                    on="click|(['td', 'tds'])"
+                    to="|toggleAttr('-t')|target attr('-t') pop fire('._body/._main', 'tip2x')">格式行
+            </label>
+        </div>
+        <hr tpl-node="input:insert2">
     </aside>
 </div>
 
 <div class="_body _Table" tpl-name="input:thead"
     on="create|$$('/thead>tr') find('th') text tsecbox obj('table') (true);
-        nodeok|stop tobj dup pass dup(2) data('tbo') eq(_1) end"
+        nodeok|stop tobj dup pass dups(2) data('tbo') eq(_1) end"
     by="New.thead(_2)"
     to="form/|trigger('insfix');
         |data('tbo')|pop fire('/thead', 'new')">
@@ -1029,7 +1087,7 @@
     会暂存实例，选单简单切换不影响已录入。 -->
 <div class="_body _Table" tpl-name="input:tbody"
     on="create|$$('/tbody>tr') find('th,td') text tsecbox obj('table') (true);
-        nodeok|stop tobj dup pass dup(2) data('tbo') eq(_1) end"
+        nodeok|stop tobj dup pass dups(2) data('tbo') eq(_1) end"
     by="New.tbody(_2)"
     to="form/|trigger('instbd');
         |data('tbo')|pop fire('/tbody', 'new')">
@@ -1062,7 +1120,7 @@
 
 <div class="_body _Table" tpl-name="input:tfoot"
     on="create|$$('/tfoot>tr') find('th,td') text tsecbox obj('table') (true);
-        nodeok|stop tobj dup pass dup(2) data('tbo') eq(_1) end"
+        nodeok|stop tobj dup pass dups(2) data('tbo') eq(_1) end"
     by="New.tfoot(_2)"
     to="form/|trigger('insfix');
         |data('tbo')|pop fire('/tfoot', 'new')">
@@ -1178,7 +1236,7 @@
 </div>
 
 <div class="_body _Xolah5li" tpl-name="input:xolah5li"
-    on="create|$('/[name=text]') val dup pass $('form/') valo('href title target') clean('', null);
+    on="create|$('/[name=text]') val dup pass $('form/') valobj('href title target') clean('', null);
         xlist|$('/textarea') val splitx(true) mdline wrap('<li>') wrapAll('<ol>') ev('detail') wrap('<h5>') obj('h5a')"
     by="New.a(_1);
         New.xolah5li(_1)"
@@ -1192,24 +1250,24 @@
     </aside>
 </div>
 
-<div class="_body _Figbox" obt-src="obts/figimg.json, obts/figsvg.json" tpl-name="input:figconbox"
+<div class="_body _Image" obt-src="obts/image.json" tpl-name="input:image"
     on="create|$('/[name=type]') val"
     to="|trigger(_1)">
     <div class="_main _list">
-        <hr tpl-source="~prop:figconbox" />
+        <hr tpl-source="~prop:image" />
     </div>
     <aside>
         <div class="_option">
             <label title="SVG源码"
                 on="click|$('/input') prop('checked') $if('svg', 'img')"
                 to="._body/._prop|trigger(_1)">
-                <input type="checkbox" />矢量图
+                <input name="svg" type="checkbox" />矢量图
             </label>
             <input type="hidden" name="type" value="img">
+            <!-- 默认右上位置 -->
+            <input type="hidden" name="fix" value="fix-rt">
         </div>
-        <pre tpl-node="input:insert2">
-            [插入2]
-        </pre>
+        <hr tpl-node="input:insert2" />
     </aside>
 </div>
 
@@ -1298,14 +1356,13 @@
 ----------------------------------------------------------------------------->
 
 <!--纯文本
-    空行分隔多个条目，多选分别填充。-->
+    空行分隔多个条目，多选分别填充。
+    注记：不可 mdline -->
 <div class="_body _Inline" obt-src="obts/list2.json" tpl-name="input:text"
     on="node|ev('detail') Text"
     to="form/|trigger('insert')">
     <div class="_main _list">
-        <div class="_prop">
-            <textarea name="content"></textarea>
-        </div>
+        <hr tpl-node="inlines:text" />
     </div>
     <aside>
         <pre tpl-node="input:option1, input:insert2">
@@ -1408,7 +1465,7 @@
 
 
 <div class="_body _Track" tpl-name="input:track"
-    on="create|$('form/') valo('kind src srclang label default')"
+    on="create|$('form/') valobj('kind src srclang label default')"
     by="New.track"
     to="form/|trigger('insert')">
     <div class="_main _list">
@@ -1420,7 +1477,7 @@
 </div>
 
 <div class="_body _Source" tpl-name="input:source1"
-    on="create|$('form/') valo('src type') clean('', null)"
+    on="create|$('form/') valobj('src type') clean('', null)"
     by="New.source1(_1)"
     to="form/|trigger('insert')">
     <div class="_main _list">
@@ -1432,7 +1489,7 @@
 </div>
 
 <div class="_body _Source" tpl-name="input:source2"
-    on="create|$('form/') valo('srcset media') clean('', null)"
+    on="create|$('form/') valobj('srcset media') clean('', null)"
     by="New.source2(_1)"
     to="form/|trigger('insert')">
     <div class="_main _list">
@@ -1444,7 +1501,7 @@
 </div>
 
 <div class="_body _Source" tpl-name="input:pimg"
-    on="create|$('form/') valo('src alt width height') clean('', null)"
+    on="create|$('form/') valobj('src alt width height') clean('', null)"
     by="New.pimg(_1)"
     to="form/|trigger('insfix')">
     <div class="_main _list">
@@ -1740,6 +1797,111 @@
     to="form/|trigger('insert')">
     <div class="_main _list">
         <hr tpl-node="inlines:text" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" obt-src="obts/itexts.json" tpl-name="input:bdi"
+    on="node|ev('detail')"
+    by="New2.bdi"
+    to="form/|trigger('insert')">
+    <div class="_main _list">
+        <hr tpl-node="inlines:text" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" obt-src="obts/itexts.json" tpl-name="input:crumb"
+    on="node|ev('detail')"
+    by="New2.crumb"
+    to="form/|trigger('insert')">
+    <div class="_main _list">
+        <hr tpl-node="inlines:text" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+
+<!-- 内联控件
+------------------------------------------------>
+
+<div class="_body _Inline" obt-src="obts/itexts.json" tpl-name="input:label"
+    on="node|ev('detail')"
+    by="New2.label"
+    to="form/|trigger('insert')">
+    <div class="_main _list">
+        <hr tpl-node="inlines:text" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<!-- 沿用内联创建处理器 -->
+
+<div class="_body _Inline" tpl-name="input:button">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:button" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:input">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:input" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:textarea">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:textarea" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:output">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:output" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:progress">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:progress" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:select">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:select" />
+    </div>
+    <aside>
+        <hr tpl-node="input:insert2" title="[插入2]">
+    </aside>
+</div>
+
+<div class="_body _Inline" tpl-name="input:option">
+    <div class="_main _list">
+        <hr tpl-node="!inlines:option" />
     </div>
     <aside>
         <hr tpl-node="input:insert2" title="[插入2]">

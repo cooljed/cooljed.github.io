@@ -30,14 +30,27 @@
 import { PlugOn } from "../../base/main.js";
 import { customGetter } from "../../base/tpb/tpb.esm.js";
 
+import { htmlEscape } from "../../base/hlparse/base.js";
+
 
 //
-// 代码元素汉字空格优化。
-// 如果<code>两侧紧邻汉字（非标点），额外添加一个空格。
-// 目的：MD文档视觉友好。
-// 如果不需要支持，在此修改为false即可。
+// 友好配置。
+// 如果不需要支持，修改为false即可。
 //
-const codeHans = true;
+const
+    // 内联文本空白清理。
+    // 首尾文本空白移除，相邻文本节点间隔单个空格。
+    trimText = true,
+
+    // 代码元素紧邻友好。
+    // 如果<code>两侧紧邻汉字（非标点），额外添加一个空格以美观。
+    friendlyCode = true,
+
+    // 其它需友好的紧邻字符。
+    // 每个字符为一个成员，可添加英文字母以友好。
+    // 注记：+ 字符主要用于快捷键组合时。
+    nearChars = new Set( "+-" );
+
 
 
 const
@@ -54,8 +67,8 @@ const
     // 传统的竖线描述并不够直观。
     __cellStart = '[',  // 单元格开头
     __cellEnd   = ']',  // 单元格结尾
-    __thFlag    = ':',  // <th>标识，跟随<th>标识
-    __tableFlag = '=',  // 表区块标识（拟双横线）
+    __thFlag    = ':',  // <th>标识、跟随<th>标识
+    __tableFlag = '|',  // 表区块标识（行首）
 
     // 代码块包围标识串
     __codeRound = "```",
@@ -84,21 +97,21 @@ const __blockFunc =
     // 内容行
     // function(el:Element): String
     //-----------------------------------------------------
-    P:          conLine,
-    ADDRESS:    conLine,
-    DD:         conLine,
-    TH:         conLine,
-    TD:         conLine,
+    P:          convLine,
+    ADDRESS:    convLine,
+    DD:         convLine,
+    TH:         convLine,
+    TD:         convLine,
     TR:         cellsTr,
     PRE:        convPre,
 
     // 标题系列
-    H1:         el => `# ${el.textContent}`,
-    H2:         el => `## ${el.textContent}`,
-    H3:         el => `### ${el.textContent}`,
-    H4:         el => `#### ${el.textContent}`,
-    H5:         el => `##### ${el.textContent}`,
-    H6:         el => `###### ${el.textContent}`,
+    H1:         el => `# ${ htmlEscape(el.textContent) }`,
+    H2:         el => `## ${ htmlEscape(el.textContent) }`,
+    H3:         el => `### ${ htmlEscape(el.textContent) }`,
+    H4:         el => `#### ${ htmlEscape(el.textContent) }`,
+    H5:         el => `##### ${ htmlEscape(el.textContent) }`,
+    H6:         el => `###### ${ htmlEscape(el.textContent) }`,
 
     // 其它标题
     SUMMARY:    el => heading( el, __miniLevel ),
@@ -153,42 +166,45 @@ const __inlineFunc =
 {
     // MD标准支持
     CODE:   convCode,
-    EM:     el => `*${el.textContent}*`,
-    I:      el => `*${el.textContent}*`,
-    STRONG: el => `**${el.textContent}**`,
-    B:      el => `**${el.textContent}**`,
-    A:      el => `[${el.textContent}](${$.attr(el, 'href')}${el.title ? ` "${el.title}"` : ''})`,
+    EM:     el => `*${ convInline(el) }*`,
+    I:      el => `*${ convInline(el) }*`,
+    STRONG: el => `**${ convInline(el) }**`,
+    B:      el => `**${ convInline(el) }**`,
+    A:      el => `[${ convInline(el) }](${$.attr(el, 'href')}${el.title ? ` "${el.title}"` : ''})`,
     IMG:    el => `![${el.alt}](${$.attr(el, 'src')}${el.title ? ` "${el.title}"` : ''})`,
 
     // 合法特性名
-    // 注：不支持内联样式延续。
+    // 不支持内联样式，简单忽略。
 
     // {cite}
-    Q:      el => `<q${el.cite ? ` cite="${el.cite}"` : ''}>${el.textContent}</q>`,
+    Q:      el => `<q${el.cite ? ` cite="${el.cite}"` : ''}>${ convInline(el) }</q>`,
     // {title}
-    ABBR:   el => `<abbr${el.title ? ` title="${el.title}"` : ''}>${el.textContent}</abbr>`,
-    DFN:    el => `<dfn${el.title ? ` title="${el.title}"` : ''}>${el.textContent}</dfn>`,
+    ABBR:   el => `<abbr${el.title ? ` title="${el.title}"` : ''}>${ convInline(el) }</abbr>`,
+    DFN:    el => `<dfn${el.title ? ` title="${el.title}"` : ''}>${ convInline(el) }</dfn>`,
     // {datetime, cite}
-    DEL:    el => `<del${el.datetime ? ` datetime="${el.datetime}"` : ''}${el.cite ? ` cite="${el.cite}"` : ''}>${el.textContent}</del>`,
-    INS:    el => `<ins${el.datetime ? ` datetime="${el.datetime}"` : ''}${el.cite ? ` cite="${el.cite}"` : ''}>${el.textContent}</ins>`,
+    DEL:    el => `<del${el.datetime ? ` datetime="${el.datetime}"` : ''}${el.cite ? ` cite="${el.cite}"` : ''}>${ convInline(el) }</del>`,
+    INS:    el => `<ins${el.datetime ? ` datetime="${el.datetime}"` : ''}${el.cite ? ` cite="${el.cite}"` : ''}>${ convInline(el) }</ins>`,
     // {dir}
-    BDO:    el => `<dbo${el.dir ? ` dir="${el.dir}"` : ''}>${el.textContent}</dbo>`,
+    BDO:    el => `<dbo${el.dir ? ` dir="${el.dir}"` : ''}>${ convInline(el) }</dbo>`,
     // {datetime}
-    TIME:   el => `<time${el.datetime ? ` datetime="${el.datetime}"` : ''}>${el.textContent}</time>`,
+    TIME:   el => `<time${el.datetime ? ` datetime="${el.datetime}"` : ''}>${ convInline(el) }</time>`,
 
     // 纯内容
-    CITE:   el => `<cite>${el.textContent}</cite>`,
-    SMALL:  el => `<small>${el.textContent}</small>`,
-    SUB:    el => `<sub>${el.textContent}</sub>`,
-    SUP:    el => `<sup>${el.textContent}</sup>`,
-    MARK:   el => `<mark>${el.textContent}</mark>`,
-    // SAMP:   el => `<samp>${el.textContent}</samp>`,
+    CITE:   el => `<cite>${ convInline(el) }</cite>`,
+    SMALL:  el => `<small>${ convInline(el) }</small>`,
+    MARK:   el => `<mark>${ convInline(el) }</mark>`,
+    S:      el => `<s>${ convInline(el) }</s>`,
+    U:      el => `<u>${ convInline(el) }</u>`,
+    VAR:    el => `<var>${ convInline(el) }</var>`,
+
+    // 上下标不支持嵌入标签
+    SUB:    el => `<sub>${ htmlEscape(el.textContent) }</sub>`,
+    SUP:    el => `<sup>${ htmlEscape(el.textContent) }</sup>`,
+
+    // SAMP:   el => `<samp>${ htmlEscape(el.textContent) }</samp>`,
     SAMP:   convCode,
-    // KBD:    el => `<kbd>${el.textContent}</kbd>`,
+    // KBD:    el => `<kbd>${ htmlEscape(el.textContent) }</kbd>`,
     KBD:    convCode,
-    S:      el => `<s>${el.textContent}</s>`,
-    U:      el => `<u>${el.textContent}</u>`,
-    VAR:    el => `<var>${el.textContent}</var>`,
 };
 
 
@@ -420,7 +436,7 @@ class FigureBlock extends Block {
             _buf.push( this._bch );
         }
         for ( const el of _els ) {
-            _buf.push( `${this._bch} ${conLine(el)}` );
+            _buf.push( `${this._bch} ${convLine(el)}` );
         }
         return _buf;
     }
@@ -591,33 +607,33 @@ class Article extends Block {
 //
 // 表格区块。
 // 各表格行之间以换行符分隔（非空行），每<tr>占据一整行。
-// 与列表List类似，表格视为顶层实体，但也可以存在于小区块内（前置>）。
-// 单元格以方括号包围封装，多个单元格封装紧密串连（即 ][ 之间无空格）。
-// 为与链接引用明确区分，每行前置一个表格标识符（=）。
+// 与列表List类似，表格视为顶层实体，但也可以存在于小区块内（前置 >）。
+// 单元格以方括号包围封装，多个单元格封装紧密串连（即 ][ 之间没有空格）。
+// 为与链接引用明确区分，每行前置一个竖线（|）作为表格标识符。
 // 格式：
 // <caption>
-//      = #### 表格标题
+//      | #### 表格标题
 //      第4级标题，前置一个表格块标识符=。
 // <thead/th>
-//      =[: 单元格1 :][ 单元格2 ][ 单元格3 ]
-//      =[-------------------------------]
+//      |[: 单元格1 :][ 单元格2 ][ 单元格3 ]
+//      |[-------------------------------]
 //      方括号内两端各填充一个空格，各单元格无缝串接。
-//      方括号内前置的冒号（:）表示<th>，仅支持首列<th>使用此标记。
-//      首列<th>方括号内后置的冒号表示后续单元格同类。这仅在表头内有效。
+//      首个方括号内前置的冒号（:）表示<th>，仅支持首列<th>使用此标记。
+//      首列<th>方括号内后置的冒号表示后续单元格同类延续。这仅在表头内有效。
 //      表头行之后跟随一条横线，也封装在方括号内（无空格填充）。
 //      注：横线至少长3个短横线。
 // <tbody/td>
-//      =[ 单元格1 ][ 单元格2 ][ 单元格3 ]
-//      =[ 单元格1 ][ 单元格2 ][ 单元格3 ]
+//      |[ 单元格1 ][ 单元格2 ][ 单元格3 ]
+//      |[ 单元格1 ][ 单元格2 ][ 单元格3 ]
 //      简单的方括号封装<td>，各行以换行符分隔（上下紧邻）。
 // <tbody/th>
-//      =[: 单元格1 ][ 单元格2 ][ 单元格3 ]
-//      首列<th>单元格在方括号内前置一个冒号。
+//      |[: 单元格1 ][ 单元格2 ][ 单元格3 ]
+//      首列<th>单元格在方括号内前置一个冒号以标识。
 //      不支持非首列的<th>存在。
 // <tfoot/tr>
-//      =[-----------------------------]
-//      =[ 单元格1 ][ 单元格2 ][ 单元格3 ] 或
-//      =[: 单元格1 ][ 单元格2 ][ 单元格3 ]
+//      |[-----------------------------]
+//      |[ 单元格1 ][ 单元格2 ][ 单元格3 ] 或
+//      |[: 单元格1 ][ 单元格2 ][ 单元格3 ]
 //      与表体行之间相隔一横线，单元格封装与<tbody>内同。
 //
 // 注记：
@@ -776,7 +792,7 @@ function convCode( el ) {
     if ( /[^`]`[^`]/.test(el.textContent) ) {
         _chx = '``';
     }
-    return codeHans ? convCodeHans(el, _chx) : `${_chx}${el.textContent}${_chx}`;
+    return friendlyCode ? codeFriend(el, _chx) : `${_chx}${el.textContent}${_chx}`;
 }
 
 
@@ -787,11 +803,36 @@ function convCode( el ) {
  * @param  {Element} el 目标元素
  * @return {String}
  */
-function conLine( el ) {
+function convLine( el ) {
     return $.contents( el, null, false, true )
-        .map( sub => sub.nodeType === 3 ? sub.textContent : convert(sub, __inlineFunc) )
+        .map( sub => sub.nodeType === 3 ? htmlEscape(sub.textContent) : convert(sub, __inlineFunc) )
         .join( '' )
         .replace( /\s+/g, ' ' );
+}
+
+
+/**
+ * 普通内联单元转换。
+ * 会递进处理内部的子元素，保有子单元的格式。
+ * 注记：
+ * 不适用代码单元，因为MarkDown中代码元素无需HTML转换。
+ * @param  {Element} el 内联元素
+ * @return {String}
+ */
+function convInline( el ) {
+    let _buf = [];
+
+    for ( const node of el.childNodes ) {
+        let _fun = __inlineFunc[ node.tagName ];
+
+        if ( _fun ) {
+            _buf.push( _fun(el) );
+        } else {
+            // 纯空忽略
+            node.textContent.trim() && _buf.push( htmlEscape(node.textContent) );
+        }
+    }
+    return trimText ? _buf.map(s => s.trim()).join(' ') : _buf.join('');
 }
 
 
@@ -806,81 +847,7 @@ function convLi( el, lev, ind ) {
     if ( !el.parentElement ) {
         return aloneLi( el );
     }
-    return isCascadeLi( el ) ? cascadeLi( el, lev, ind ) : conLine( el );
-}
-
-
-/**
- * 表格行转换。
- * - 单元格之间以一个特殊序列 §§ 分隔。
- * - 首尾单元格外围则只有单个 § 包围。
- * @param  {Element} tr 表格行元素
- * @param  {Boolean} head 是否为表头行
- * @return {String} 一行文本
- */
-function cellsTr( tr, head ) {
-    let _els = [ ...tr.cells ],
-        _vth = _els.shift() || '',
-        _ch1 = _vth.tagName === 'TH' ? __thFlag : '',
-        _ch2 = head ? __thFlag : '';
-
-    return _vth && __tableFlag + wrapCell( _vth, _ch1, _ch2 ) + wrapCells( _els );
-}
-
-
-/**
- * 普通单元格序列封装。
- * @param  {[Element]} els 单元格集
- * @return {String}
- */
-function wrapCells( els ) {
-    return els.map( el => wrapCell(el) ).join( '' );
-}
-
-
-/**
- * 单元格封装。
- * 注意在封装字符内填充一个空格。
- * @param  {Element} el 单元格
- * @param  {String} ch1 前标识（:）
- * @param  {String} ch2 后标识（:）
- * @return {String}
- */
-function wrapCell( el, ch1 = '', ch2 = '' ) {
-    return `${__cellStart}${ch1} ${conLine(el)} ${ch2}${__cellEnd}`;
-}
-
-
-/**
- * 插入表区域间隔行。
- * 内部间隔线至少3个短横线，整体长度不超过80字节。
- * @param  {[String]} buf 缓存集
- * @return {[String]} buf
- */
-function pushSpace( buf ) {
-    let _ref = buf[ buf.length-1 ],
-        _n = Math.min(
-            Math.max( _ref.length, 5 ), 80
-        );
-    buf.push(
-        __tableFlag + __cellStart + ''.padStart(_n - 2, '-') + __cellEnd
-    )
-    return buf;
-}
-
-
-/**
- * 标题转换器。
- * 可用于任意级别标题转换。
- * 默认4级，适用内含标题的小区块（如<details>）。
- * 包容标题内的内联小单元。
- * @param  {Element} el 目标元素
- * @param  {Number} n 标题层级数
- * @return {String}
- */
-function heading( el, n ) {
-    let _tt = conLine( el );
-    return n ? `${''.padStart(n, '#')} ${_tt}` : _tt;
+    return isCascadeLi( el ) ? cascadeLi( el, lev, ind ) : convLine( el );
 }
 
 
@@ -890,7 +857,7 @@ function heading( el, n ) {
  * 结构：<pre role="codeblock">/<code>+
  * @param  {Element} el 根元素
  * @param  {Number} lev 所在小区块层级，可选
- * @return {[String]}
+ * @return {String}
  */
 function convCodeblock( el, lev = 0 ) {
     let _cels = $.find( '>code', el ),
@@ -908,6 +875,10 @@ function convCodeblock( el, lev = 0 ) {
  * 代码表转换。
  * 内部的子语法块不被区分，相同对待。
  * 转换效果与代码块相同。
+ * 注记：
+ * 因为录入时也为输入代码块，故此设计。
+ * 转为块级会丢失行号信息，但语言指定更简洁。
+ *
  * 结构：<ol role="codelist">/[<li>/<code>]+
  * @param  {Element} el 根元素
  * @param  {Number} lev 所在小区块层级，可选
@@ -928,7 +899,8 @@ function convCodelist( el, lev = 0 ) {
  * @return {String}
  */
 function convPre( el, lev ) {
-    return codeBlock( el.textContent.trimEnd().split('\n'), '', ''.padStart(lev, '>') );
+    let _txt = htmlEscape( el.textContent.trimEnd() );
+    return codeBlock( _txt.split('\n'), '', ''.padStart(lev, '>') );
 }
 
 
@@ -960,7 +932,22 @@ function convert( el, cobj, ...rest ) {
     let _rk = $.attr( el, 'role' ),
         _fn = cobj[ _rk ] || cobj[ el.tagName ];
 
-    return _fn ? _fn( el, ...rest ) : el.textContent.trim();
+    return _fn ? _fn( el, ...rest ) : htmlEscape( el.textContent.trim() );
+}
+
+
+/**
+ * 标题转换器。
+ * 可用于任意级别标题转换。
+ * 默认4级，适用内含标题的小区块（如<details>）。
+ * 包容标题内的内联小单元。
+ * @param  {Element} el 目标元素
+ * @param  {Number} n 标题层级数
+ * @return {String}
+ */
+function heading( el, n ) {
+    let _tt = convLine( el );
+    return n ? `${''.padStart(n, '#')} ${_tt}` : _tt;
 }
 
 
@@ -977,7 +964,7 @@ function convert( el, cobj, ...rest ) {
  */
 function aloneLi( el ) {
     let _pfix = `${$.siblingNth(el)}. `;
-    return isCascadeLi( el ) ? cascadeLi( el, 0, '' ) : _pfix + conLine(el);
+    return isCascadeLi( el ) ? cascadeLi( el, 0, '' ) : _pfix + convLine(el);
 }
 
 
@@ -1045,32 +1032,34 @@ function codeBlock( codes, lang = '', prefix = '' ) {
 
 
 /**
- * 支持汉字优化的代码转换。
+ * 代码转换友好。
  * 紧邻汉字的一侧添加一个空格。
  * @param  {Element} el 代码元素
  * @param  {String} chx 封装字符
  * @return {String}
  */
-function convCodeHans( el, chx ) {
+function codeFriend( el, chx ) {
     let _prev = (el.previousSibling || '').textContent || '',
         _next = (el.nextSibling || '').textContent || '';
 
-    return codeHans2( chx, el.textContent, _prev, _next );
+    return codeWarp( chx, el.textContent, _prev, _next );
 }
 
 
 /**
- * 汉字包围代码处理。
- * 如果代码元素的前后紧邻汉字，则添加额外的空格。
+ * 代码分组处理。
+ * 如果代码元素的前后紧邻汉字或指定的字符，则添加额外的空格。
  * @param  {String} chx 封装字符
  * @param  {String} txt 代码文本
  * @param  {String} beg 前段文本
  * @param  {String} end 后段文本
  * @return {String} MD格式代码串（可能两端外附一个空格）
  */
-function codeHans2( chx, txt, beg, end ) {
-    let _ch1 = isHans( beg[beg.length-1] ) ? ' ' : '',
-        _ch2 = isHans( end[0] ) ? ' ' : '';
+function codeWarp( chx, txt, beg, end ) {
+    let _p = beg[beg.length-1],
+        _n = end[0],
+        _ch1 = isHans(_p) || nearChars.has(_p) ? ' ' : '',
+        _ch2 = isHans(_n) || nearChars.has(_n) ? ' ' : '';
 
     return _ch1 + chx + txt + chx + _ch2;
 }
@@ -1085,6 +1074,65 @@ function codeHans2( chx, txt, beg, end ) {
 function isHans( ch ) {
     let _n = ch && ch.charCodeAt( 0 );
     return _n && _n >= 0x4E00 && _n <= 0x9FA5
+}
+
+
+/**
+ * 表格行转换。
+ * - 单元格之间以一个特殊序列 §§ 分隔。
+ * - 首尾单元格外围则只有单个 § 包围。
+ * @param  {Element} tr 表格行元素
+ * @param  {Boolean} head 是否为表头行
+ * @return {String} 一行文本
+ */
+function cellsTr( tr, head ) {
+    let _els = [ ...tr.cells ],
+        _vth = _els.shift() || '',
+        _ch1 = _vth.tagName === 'TH' ? __thFlag : '',
+        _ch2 = head ? __thFlag : '';
+
+    return _vth && __tableFlag + wrapCell( _vth, _ch1, _ch2 ) + wrapCells( _els );
+}
+
+
+/**
+ * 普通单元格序列封装。
+ * @param  {[Element]} els 单元格集
+ * @return {String}
+ */
+function wrapCells( els ) {
+    return els.map( el => wrapCell(el) ).join( '' );
+}
+
+
+/**
+ * 单元格封装。
+ * 注意在封装字符内填充一个空格。
+ * @param  {Element} el 单元格
+ * @param  {String} ch1 前标识（:）
+ * @param  {String} ch2 后标识（:）
+ * @return {String}
+ */
+function wrapCell( el, ch1 = '', ch2 = '' ) {
+    return `${__cellStart}${ch1} ${convLine(el)} ${ch2}${__cellEnd}`;
+}
+
+
+/**
+ * 插入表区域间隔行。
+ * 内部间隔线至少3个短横线，整体长度不超过80字节。
+ * @param  {[String]} buf 缓存集
+ * @return {[String]} buf
+ */
+function pushSpace( buf ) {
+    let _ref = buf[ buf.length-1 ],
+        _n = Math.min(
+            Math.max( _ref.length, 5 ), 80
+        );
+    buf.push(
+        __tableFlag + __cellStart + ''.padStart(_n - 2, '-') + __cellEnd
+    )
+    return buf;
 }
 
 
