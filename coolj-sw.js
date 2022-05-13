@@ -1,7 +1,7 @@
 const
-    version = 'cooljed-v1.0-20220301',
+    version = 'cooljed-v0.2.1-20220512',
 
-    __cName = 'cooljed-v1',
+    __cName = 'cooljed-v02',
 
     __appFiles = [
         "/",
@@ -15,6 +15,7 @@ const
         "/base/hlparse/languages/normal.js",
         "/base/hlparse/main.js",
         "/base/main.js",
+        "/base/scripter.js",
         "/base/shortcuts.js",
         "/base/tpb/config.js",
         "/base/tpb/default.css",
@@ -65,8 +66,7 @@ const
         "/templates/obts/codes.json",
         "/templates/obts/create.json",
         "/templates/obts/etext.json",
-        "/templates/obts/figimg.json",
-        "/templates/obts/figsvg.json",
+        "/templates/obts/graph.json",
         "/templates/obts/h2header.json",
         "/templates/obts/indet2val.json",
         "/templates/obts/itexts.json",
@@ -79,6 +79,7 @@ const
         "/templates/obts/state2val.json",
         "/templates/obts/sublist.json",
         "/templates/obts/table.json",
+        "/templates/obts/xsubmit.json",
         "/templates/options.html",
         "/templates/panel.html",
         "/templates/properties.html",

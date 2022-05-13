@@ -301,14 +301,8 @@ function logoColor( slr ) {
 // 用户页构建。
 //////////////////////////////////////////////////////////////////////////////
 
-// Tpb支持。
 Tpb.init( On, By ).build( document.body );
 
-
-// PWA 支持
-if ( 'serviceWorker' in navigator ) {
-    navigator.serviceWorker.register( '/coolj-sw.js' );
-}
 
 
 //
