@@ -254,7 +254,7 @@
             keydown 支持即时删除条目（友好）。 -->
         <select name="attrs" size="5" class="_list" title="删除〔Delete〕"
             on="follow|evo(3) children ev('detail');
-                change|evo(3) val $case('on by to', null) $switch('obts', 'empty', 'value') str('attr:') node(_1);
+                change|(['obts', 'empty', 'value']) evo(3) val $case('on by to', null) str('attr:') node(_1);
                 attrto|evo(3) val dup pass sel0 pop attrs(_1);
                 addnew|ev('detail') dups(2) $$('/option') prop('value') inside(_) end elem('option');
                 select|ev('detail');
@@ -777,7 +777,7 @@
                         1/span|trigger(_1)">管理</button>
             </div>
             <!--置顶区代码清单 -->
-            <ul id="sh-tops" class="_list" tpb-for
+            <ul id="sh-tops" class="_list" tpb-top tpb-for="$"
                 on="update|ev('detail')"
                 to="|replace">
                 <li _data-sid="$.shid">
@@ -850,7 +850,7 @@
             </div>
             <!--搜索结果清单
                 label:title 置顶或曾经置顶的条目有效。 -->
-            <ol id="sh-list" class="_list" tpb-for
+            <ol id="sh-list" class="_list" tpb-top tpb-for="$"
                 on="update|ev('detail')"
                 to="|replace">
                 <li _data-sid="$.shid">

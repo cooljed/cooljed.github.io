@@ -1,7 +1,6 @@
 const
-    version = 'cooljed-v0.2.1-20220512',
-
-    __cName = 'cooljed-v02',
+    // cooljed-v0.2.4-20220828
+    __cName = 'cooljed-v024',
 
     __appFiles = [
         "/",
@@ -44,13 +43,16 @@ const
         "/plugins/coolmd/files.json",
         "/plugins/coolmd/index.html",
         "/plugins/coolmd/logo.png",
+        "/plugins/coolmd/main.js",
         "/plugins/coolmd/styles.css",
         "/plugins/example/extend.js",
         "/plugins/example/files.json",
         "/plugins/example/index.html",
         "/plugins/example/logo.png",
+        "/plugins/example/main.js",
         "/plugins/example/maps.json",
         "/plugins/example/styles.css",
+        "/register.js",
         "/styles.css",
         "/styles/example/codes.css",
         "/styles/example/main.css",
@@ -105,9 +107,10 @@ const
 
 
 /**
- * 缓存就绪处理。
- * @param {String} name 缓存名
- * @param {[String]} files 待缓存文件
+ * 初始缓存准备。
+ * @param  {String} name 缓存名
+ * @param  {[String]} files 待缓存文件
+ * @return {Promise}
  */
 async function cacheReady( name, files ) {
     const cache = await caches.open( name );
@@ -116,7 +119,19 @@ async function cacheReady( name, files ) {
 
 
 /**
- * 从缓存响应。
+ * 更新后清理缓存。
+ * 在用户关闭所有旧sw管理的页面后执行。
+ * @param  {String} name 缓存名称
+ * @return {Promise}
+ */
+async function updateClean( name ) {
+    const list = await caches.keys();
+    return Promise.all( list.map( key => name !== key && caches.delete(key) ) );
+}
+
+
+/**
+ * 从响应补充缓存。
  * @param  {FetchEvent} ev 请求事件对象
  * @param  {String} name 缓存名
  * @return {Response}
@@ -127,14 +142,19 @@ async function respondCache( ev, name ) {
     if ( _resp ) {
         return _resp;
     }
-    _resp = await fetch( ev.request.url );
     console.log( `[Service Worker] Caching new resource: ${ev.request.url}` );
 
-    let cache = await caches.open( name );
-    cache.put( ev.request, _resp.clone() );
+    // 丢弃原有请求的状态直接使用.url，
+    // 否则刷新fetch可能会出错（beep.ogg）。
+    _resp = await fetch( ev.request.url );
 
+    if ( _resp.ok ) {
+        let cache = await caches.open( name );
+        cache.put( ev.request, _resp.clone() );
+    }
     return _resp;
 }
+
 
 
 self.addEventListener(
@@ -142,7 +162,16 @@ self.addEventListener(
     ev => ev.waitUntil( cacheReady(__cName, __appFiles) )
 );
 
+
+// 更新清理。
+self.addEventListener(
+    'activate',
+    ev => ev.waitUntil( updateClean(__cName) )
+);
+
+
 self.addEventListener(
     'fetch',
     ev => ev.respondWith( respondCache(ev, __cName) )
 );
+
