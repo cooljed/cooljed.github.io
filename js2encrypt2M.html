@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8" />
+<meta http-equiv="no-cache">
+<title>string encrypt with javascript</title>
+<script>
+(function() {
+
+    var _Charset = {
+            'cjk': [ 'u4e00', 'u9fa5' ],    // 汉字 [一-龥]
+            'num': [ 'u0030', 'u0039' ],    // 数字 [0-9]
+            'lal': [ 'u0061', 'u007a' ],    // 小写字母 [a-z]
+            'ual': [ 'u0041', 'u005a' ],    // 大写字母 [A-Z]
+            'asc': [ 'u0020', 'u007e' ]     // ASCII 可视字符
+        };
+
+
+    //
+    // 加密：字符码在字符集内平移。
+    // 特点：
+    // 1. 字串越短加密效果越好，若短文不大于密钥长度，则不可破解。
+    // 2. 不增加文本的长度，即密文长度等于原文长度。
+    // 缺点：
+    // 1. 一次只能对“一个”连续值的字符集进行处理，而一般字符串中会
+    //    同时包含多个字符集中的字符。
+    // 2. 汉字平移后的字较生僻，明显体现出已被平移处理；
+    // 推荐：
+    // 适于特定类型的短字符串的处理，如：时间串、名称、标题等。
+    //
+    // 参数 cset：
+    // 用 Unicode 表示 -- 4 位十六进制，前置‘u’，
+    // 可用预定义的 _Charset 属性名标识，默认为 cjk。
+    //
+    // @param array na  - 平移量数组
+    // @param array cset  - 字符集名/范围 [ 起点, 终点 ]）
+    // @return string  - 平移后的字符串
+    //
+    String.prototype._shift = (function()
+    {
+        var _cset, _id, _beg, _len, _exp;
+
+        return  function( na, cset ) {
+            switch (typeof cset) {
+                case 'undefined':
+                    cset = 'cjk';
+                case 'string':
+                    _cset = (cset == _id) ? null : _Charset[cset];
+                    break;
+                default: _cset = cset;
+            }
+            if ( _cset ) {
+                _beg = parseInt(_cset[0].substring(1), 16);
+                _len = parseInt(_cset[1].substring(1), 16) - _beg + 1;
+                _exp = RegExp('[\\' + _cset[0] + '-\\' + _cset[1] + ']', 'g');
+                _id  = cset;
+            }
+            var _sz = na.length,
+                _cnt = 0;
+            return  this.replace(_exp, function(s) {
+                var _c = s.charCodeAt(0) - _beg;
+                return  String.fromCharCode((_c+na[_cnt++%_sz])%_len + _beg);
+            });
+        };
+    })();
+
+
+    //
+    // 解密：字符码在字符集内平移-恢复。
+    //
+    String.prototype._unshift = (function()
+    {
+        var _cset, _id, _beg, _len, _exp;
+
+        return  function( na, cset ) {
+            switch (typeof cset) {
+                case 'undefined':
+                    cset = 'cjk';
+                case 'string':
+                    _cset = (cset == _id) ? null : _Charset[cset];
+                    break;
+                default: _cset = cset;
+            }
+            if ( _cset ) {
+                _beg = parseInt(_cset[0].substring(1), 16);
+                _len = parseInt(_cset[1].substring(1), 16) - _beg + 1;
+                _exp = RegExp('[\\' + _cset[0] + '-\\' + _cset[1] + ']', 'g');
+                _id  = cset;
+            }
+            var _sz = na.length,
+                _cnt = 0;
+            return  this.replace(_exp, function(s) {
+                var _c = s.charCodeAt(0) - _beg;
+                return  String.fromCharCode((_c-na[_cnt++%_sz]%_len+_len)%_len + _beg);
+            });
+        };
+    })();
+
+
+    //== 特化版 ===============================================================
+
+    //
+    // alnum
+    // 字符集：[0-9a-zA-Z] = 英文字母（大小写） + 数字
+    //
+    String.prototype._shift_en = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+        return  this.replace(/[0-9a-zA-Z]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x41,
+                _len = 26;
+            if (_n >= 0x61) {
+                _beg = 0x61;
+            } else if (_n < 0x41) {
+                _beg = 0x30;
+                _len = 10;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c+na[_cnt++%_sz])%_len + _beg);
+        });
+    };
+
+    String.prototype._unshift_en = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+        return  this.replace(/[0-9a-zA-Z]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x41,
+                _len = 26;
+            if (_n >= 0x61) {
+                _beg = 0x61;
+            } else if (_n < 0x41) {
+                _beg = 0x30;
+                _len = 10;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c-na[_cnt++%_sz]%_len+_len)%_len + _beg);
+        });
+    };
+
+
+    //
+    // 汉语文字环境
+    // 字符集：[0-9a-zA-Z\u4e00-\u9fa5] = CJK 统一汉字 + 英文字母（大小写） + 数字
+    //
+    String.prototype._shift_zh = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+
+        return  this.replace(/[0-9a-zA-Z\u4e00-\u9fa5]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x41,
+                _len = 26;
+            if (_n >= 0x4e00) {
+                _beg = 0x4e00;
+                _len = 20902;
+            } else if (_n >= 0x61) {
+                _beg = 0x61;
+            } else if (_n < 0x41) {
+                _beg = 0x30;
+                _len = 10;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c+na[_cnt++%_sz])%_len + _beg);
+        });
+    };
+
+    String.prototype._unshift_zh = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+
+        return  this.replace(/[0-9a-zA-Z\u4e00-\u9fa5]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x41,
+                _len = 26;
+            if (_n >= 0x4e00) {
+                _beg = 0x4e00;
+                _len = 20902;
+            } else if (_n >= 0x61) {
+                _beg = 0x61;
+            } else if (_n < 0x41) {
+                _beg = 0x30;
+                _len = 10;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c-na[_cnt++%_sz]%_len+_len)%_len + _beg);
+        });
+    };
+
+
+    //
+    // 中文环境
+    // 字符集：[\u0020-\u007e\u4e00-\u9fa5] = CJK 统一汉字 + ASCII 常规字符
+    // 注：
+    // \u0020 = 空格，\u007e = ~
+    //
+    String.prototype._shift_chs = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+
+        return  this.replace(/[\u0020-\u007e\u4e00-\u9fa5]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x20,
+                _len = 95;
+            if (_n >= 0x4e00) {
+                _beg = 0x4e00;
+                _len = 20902;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c+na[_cnt++%_sz])%_len + _beg);
+        });
+    };
+
+    String.prototype._unshift_chs = function( na )
+    {
+        var _sz = na.length,
+            _cnt = 0;
+
+        return  this.replace(/[\u0020-\u007e\u4e00-\u9fa5]/g, function(s) {
+            var _n = s.charCodeAt(0),
+                _beg = 0x20,
+                _len = 95;
+            if (_n >= 0x4e00) {
+                _beg = 0x4e00;
+                _len = 20902;
+            }
+            var _c = _n - _beg;
+            return  String.fromCharCode((_c-na[_cnt++%_sz]%_len+_len)%_len + _beg);
+        });
+    };
+
+})();
+</script>
+</head>
+<body lang="zh-cn">
+<h3>代码测试……</h3>
+<form name="frm">
+<textarea name="tests" style="width:500px;height:100px;">D3EpAcebGRnhGqUqObUjRBC1MXnkDJK9ZPHjPxS3Jda3Q5J3XJe4FB0OT</textarea>
+</form>
+<p>
+    <input type="button" onclick="encode();" value="加密" /><br>
+    <input type="button" onclick="decode();" value="解密" />
+</p>
+<script>
+    // PK:[1]
+    var _str = "OjV8sk1GfQmXRE6k9h1R9djkPtnZg6hZ7rE7G5LJKt2atLD1l4bA";
+    var _k1 = [2013,21,36,508,96,53,2011,275,46,1750,200,2140,50];
+    // var _enc = _str._shift_en(_k1);
+    // var _dec = _enc._unshift_en(_k1);
+
+    function encode() {
+        var _s = document.frm.tests.value.trim() || _str;
+        document.frm.tests.value = _s._shift_en(_k1);
+    }
+    function decode() {
+        var _s = document.frm.tests.value.trim() || _str;
+        document.frm.tests.value = _s._unshift_en(_k1);
+    }
+</script>
+</body>
+</html>
