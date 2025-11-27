@@ -1,6 +1,6 @@
 const
-    // cooljed-v0.2.4-20220828
-    __cName = 'cooljed-v024-1',
+    // cooljed-v0.2.4-20251127
+    __cName = 'cooljed-v024-2',
 
     __appFiles = [
         "/",
